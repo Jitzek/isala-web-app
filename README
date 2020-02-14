@@ -1,1 +1,7 @@
+[ PHP isala Web Application ]
 
+[ Rules ]
+- Don't push straight to master (use branches)
+- Don't push without (a) teammate(s) approving the files
+- Only push files pertaining to the project
+- What you push is your responsibility

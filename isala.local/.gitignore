@@ -1,0 +1,5 @@
+.vscode
+tests/bootstrap.php
+tests/README.md
+vendor/
+phpunit.xml.dist

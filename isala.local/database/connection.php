@@ -1,6 +1,6 @@
 <?php
 
-class Connection
+class DBConnection
 {
     private $servername = "isala.local";
     private $username = "elzenknopje";

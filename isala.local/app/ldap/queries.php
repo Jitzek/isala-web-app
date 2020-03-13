@@ -52,6 +52,7 @@ class LDAPQueries
         $filter = vsprintf("(&(objectClass=%s)(%s=%s))", $this->arrSanitizeFilter([$ldap_group_ObjClass, $ldap_user_ObjClass, $ldap_user_dn]));
         $entries = ldap_search($this->conn, $ldapdn, $filter);
         $results = ldap_get_entries($this->conn, $entries);
+        if ($results["count"] < 1) return null;
         return $results[0]['cn'][0];
     }
 

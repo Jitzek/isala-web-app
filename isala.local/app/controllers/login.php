@@ -7,10 +7,13 @@ class Login extends Controller
     private $model;
     public function index()
     {
+        // Define Model to be used
         $this->model = $this->model('LoginModel');
 
+        // Parse data to view
         $this->view('login/index', ['title' => $this->model->getTitle()]);
         
+        // Handle Post Request (login)
         if ($_POST['uid'] && $_POST['passwd']) {
             if ($this->attemptLogin($_POST['uid'], $_POST['passwd'])) {
                 header("Location: /public/home");
@@ -24,7 +27,9 @@ class Login extends Controller
     protected function attemptLogin($uid, $passwd) 
     {
         if ($this->model->getLDAP()->getConnection()) {
-            # Example Login
+            /**
+             * Example login
+            */
             $ldapbind = $this->model->getLDAP()->query('bind', [NULL, NULL]); //NULL, NULL = anonymous bind
         
             $ldap_dn_users = "ou=developers,dc=isala,dc=local"; // Location of the user in LDAP Directory

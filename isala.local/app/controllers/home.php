@@ -10,8 +10,11 @@ class Home extends Controller
         if (!$_SESSION['uid']) {
             return header("Location: /public/login");
         }
+
+        // Define Model to be used
         $model = $this->model('HomeModel');
 
+        // Parse data to view
         $this->view('home/index', ['title' => $model->getTitle()]);
     }
 }

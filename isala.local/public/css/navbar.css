@@ -1,0 +1,63 @@
+.navbar {
+    background-color: #50535F !important;
+    background-image: linear-gradient(to left,#50535F, #484A53);
+}
+
+.isala-logo {
+    width: 80px;
+    height: auto;
+}
+
+.btn-logout {
+    color: white;
+}
+.btn-logout:hover {
+    color: white;
+}
+
+
+.logout-icon {
+    width: 25px;
+    height: auto;
+}
+
+.btn-user {
+    background: none;
+    border: none;
+    color: #dddddd;
+    padding: 2px;
+    animation: smooth-unhover 0.35s forwards;
+}
+.btn-user:hover {
+    animation: smooth-hover 0.35s forwards;
+    text-decoration: none;
+}
+
+.dropdown-menu {
+    background-image: linear-gradient(to left,#50535F, #484A53);
+}
+
+.dropdown-item {
+    color: white;
+}
+
+.dropdown-item:hover {
+    color: white;
+    background-image: linear-gradient(to left,rgba(80, 83, 95, 0.85), rgba(72, 74, 83, 0.85));
+}
+
+@keyframes smooth-unhover {
+    from {
+        color: white;
+    } to {
+        color: #dddddd;
+    }
+}
+
+@keyframes smooth-hover {
+    from {
+        color: #dddddd;
+    } to {
+        color: white;
+    }
+}

@@ -13,11 +13,6 @@ class UserModel
         $this->ldap = new LDAPConnection();
     }
 
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
     public function getName()
     {
         //SQL Query

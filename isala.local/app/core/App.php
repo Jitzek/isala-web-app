@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Main App
+ * Creates Requested Controllers
+ */
 class App 
 {
     // Default Routing args
@@ -13,16 +17,17 @@ class App
 
         $url = $this->parseUrl();
 
+        // Check if requested controller exists
         if (file_exists('../app/controllers/' . $url[0] . '.php')) {
             $this->controller = $url[0];
             unset($url[0]);
         }
-        require_once('../app/controllers/home.php');
 
+        // Define controller
         require_once '../app/controllers/' . $this->controller . '.php';
-
         $this->controller = new $this->controller;
 
+        // Check if requested method exists
         if (isset($url[1])) {
             if (method_exists($this->controller, $url[1])) {
                 $this->method = $url[1];
@@ -30,12 +35,17 @@ class App
             }
         }
 
+        // Check if parameters are given, else keep array empty
         // FIXME: How to handle too many arguments?
         $this->params = $url ? array_values($url) : [];
 
         call_user_func_array([$this->controller, $this->method], $this->params);
     }
 
+    /**
+     * Gets arguments from url e.g. localhost/argument1/argument2
+     * Return Array with url arguments
+     */
     protected function parseUrl() 
     {
         if (isset($_GET['url'])) {

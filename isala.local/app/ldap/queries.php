@@ -1,17 +1,11 @@
 <?php
 
-class LDAPConnection
+class LDAPQueries 
 {
-    private $hostname = "isala.local"; // "localhost" also accepted
-
-    public function __construct()
+    private $conn;
+    public function __construct($connection)
     {
-        $this->conn = ldap_connect($this->hostname);
-    }
-
-    public function getConnection()
-    {
-        return $this->conn;
+        $this->conn = $connection;
     }
 
     public function bind($ldaprdn, $ldappass)
@@ -47,3 +41,5 @@ class LDAPConnection
         return true;
     }
 }
+
+    

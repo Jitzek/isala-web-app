@@ -3,14 +3,25 @@
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>
-            <?=htmlentities($data['title'])?>
-        </title>
-    </head>
-    <body>
+
+<head>
+    <title>
+        <?= htmlentities($data['title']) ?>
+    </title>
+    <?php include('../public/includes/head.php') ?>
+    <?php include('../public/includes/footer.php') ?>
+</head>
+
+<body>
+    <?php include('../public/includes/navbar.php') ?>
+    <div class="container">
         <h1>Home Page</h1>
-        <p>Welcome <?=htmlentities($data['name'])?></p>
-        <p>Group <?=htmlentities($data['group'])?></p>
-    </body>
+        <p>Welcome <?= htmlentities($data['name']) ?></p>
+        <p>Group <?= htmlentities($data['group']) ?></p>
+    </div>
+</body>
+<footer>
+    <?php include_once('../public/includes/footer.php') ?>
+</footer>
+
 </html>

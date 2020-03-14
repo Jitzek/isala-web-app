@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="/public/css/navbar.css" />
+    <link rel="stylesheet" href="../public/css/navbar.css" />
 </head>
 
 <body>
@@ -14,7 +14,7 @@
                 </button>
                 <img class="isala-logo" src="../public/imgs/isala-logo.png" />
             </a>
-            <div class="form-inline">
+            <div class="nav-right-side">
                 <div class="dropdown show">
                     <a class="dropdown-toggle btn-user" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <?= htmlentities($data['name']); ?>
@@ -24,30 +24,32 @@
                         <a class="dropdown-item" href="#">Instellingen</a>
                     </div>
                 </div>
-                <form method="post" action="/public/logout">
-                    <button class="btn btn-logout" type="submit" name="logout" value="logout">
-                        <img class="logout-icon" src="../public/imgs/logout_white.png" />
-                    </button>
-                </form>
+                <div>
+                    <form method="post" action="/public/logout" class="form-logout">
+                        <button class="btn btn-logout" type="submit" name="logout" value="logout">
+                            <img class="logout-icon" src="../public/imgs/logout_white.png" />
+                        </button>
+                    </form>
+                </div>
             </div>
         </nav>
     </section>
     <div class="wrapper" style="position: absolute">
         <!-- Sidebar -->
         <nav id="sidebar">
-            <ul class="list-unstyled components">
+            <ul class="list-unstyled components sidebar-ul">
                 <div style="margin-bottom: 50px;"></div>
                 <li class="active">
-                    <a href="#">Home</a>
+                    <a class="sidebar-item" href="#">Home</a>
                 </li>
                 <li>
-                    <a href="#">Documenten</a>
+                    <a class="sidebar-item" href="#">Documenten</a>
                 </li>
                 <li>
-                    <a href="#">Voortgang</a>
+                    <a class="sidebar-item" href="#">Voortgang</a>
                 </li>
                 <li>
-                    <a href="#">Afspraken</a>
+                    <a class="sidebar-item" href="#">Afspraken</a>
                 </li>
             </ul>
         </nav>

@@ -9,6 +9,9 @@
     <section>
         <nav class="navbar navbar-dark bg-dark justify-content-between">
             <a class="navbar-brand">
+                <button type="button" id="sidebarCollapse" class="btn-hamburger">
+                    <i class="hamburger-menu icon-white"></i>
+                </button>
                 <img class="isala-logo" src="../public/imgs/isala-logo.png" />
             </a>
             <div class="form-inline">
@@ -29,6 +32,27 @@
             </div>
         </nav>
     </section>
+    <div class="wrapper" style="position: absolute">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <ul class="list-unstyled components">
+                <div style="margin-bottom: 50px;"></div>
+                <li class="active">
+                    <a href="#">Home</a>
+                </li>
+                <li>
+                    <a href="#">Documenten</a>
+                </li>
+                <li>
+                    <a href="#">Voortgang</a>
+                </li>
+                <li>
+                    <a href="#">Afspraken</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <script src="../public/js/navbar.js" type="text/javascript"> </script>
 </body>
 
 </html>

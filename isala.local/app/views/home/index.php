@@ -9,7 +9,6 @@
         <?= htmlentities($data['title']) ?>
     </title>
     <?php include('../public/includes/head.php') ?>
-    <?php include('../public/includes/footer.php') ?>
 </head>
 
 <body>

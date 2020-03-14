@@ -14,10 +14,31 @@ class LoginTest extends TestCase
 {
     // FunctionName needs to start with "test" (capitalizing shouldn't matter)
     /** @test */
-    public function attemptLogin_test() {
+    public function attemptLogin_succesful() {
         $uid = 'elzenknopje';
         $passwd = 'idebian';
-        $this->attemptLogin($uid, $passwd);
+        $this->assertTrue($this->attemptLogin($uid, $passwd));
+    }
+
+    /** @test */
+    public function attemptLogin_wrongUser() {
+        $uid = 'wronguser';
+        $passwd = 'idebian';
+        $this->assertFalse($this->attemptLogin($uid, $passwd));
+    }
+
+    /** @test */
+    public function attemptLogin_wrongPasword_test() {
+        $uid = 'elzenknopje';
+        $passwd = 'wrongpassword';
+        $this->assertFalse($this->attemptLogin($uid, $passwd));
+    }
+
+    /** @test */
+    public function attemptLogin_wrongUserAndWrongPasword_test() {
+        $uid = 'wronguser';
+        $passwd = 'wrongpassword';
+        $this->assertFalse($this->attemptLogin($uid, $passwd));
     }
     
     public function attemptLogin($uid, $passwd)
@@ -74,33 +95,33 @@ class LoginTest extends TestCase
              */
             $ldapbind = $model->getLDAP()->query('bind', [NULL, NULL]); //NULL, NULL = anonymous bind
             if (!$ldapbind) {
-                assertTrue(false);
+                return false;
             }
 
             $ldap_dn_users = "ou=developers,dc=isala,dc=local"; // Location of the user in LDAP Directory
 
             // Check if User Exists
-            if (!$model->getLDAP()->query('uidExists', [$ldap_dn_users, $uid, "inetOrgPerson"])) assertTrue(false);
+            if (!$model->getLDAP()->query('uidExists', [$ldap_dn_users, $uid, "inetOrgPerson"])) return false;
 
             // Get User's DN
             $ldap_user_dn = $model->getLDAP()->query('getDnByUid', [$ldap_dn_users, $uid]);
 
             // Check if User is in Group
             $ldap_group_dn = "cn=developers,ou=developers,dc=isala,dc=local"; // Location of the group in LDAP Directory
-            if (!$model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) assertTrue(false);
+            if (!$model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) return false;
 
             // Bind to LDAP with this user
             $ldapbind = $model->getLDAP()->query('bind', [$ldap_user_dn, $passwd]);
             if (!$ldapbind) {
-                assertTrue(false);
+                return false;
             }
 
             $_SESSION['uid'] = $uid;
-            assertTrue(true);
+            return true;
         } else {
             die('Connection to LDAP service failed');
         }
-        $this->assertTrue(true);
+        return false;
     }
 }
 

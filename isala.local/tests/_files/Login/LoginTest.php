@@ -14,11 +14,29 @@ class LoginTest extends TestCase
 {
     // FunctionName needs to start with "test" (capitalizing shouldn't matter)
     /** @test */
-    public function attemptLogin_succesful()
+    public function attemptLogin_succesful1()
     {
         $uid = 'elzenknopje';
         $passwd = 'idebian';
-        $group = 'developer';
+        $group = 'developers';
+        $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
+    }
+
+    /** @test */
+    public function attemptLogin_succesful2()
+    {
+        $uid = 'j.janssen';
+        $passwd = 'jan';
+        $group = 'dokters';
+        $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
+    }
+
+    /** @test */
+    public function attemptLogin_succesful3()
+    {
+        $uid = 'D.i.Eet';
+        $passwd = 'dieet';
+        $group = 'dietisten';
         $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
     }
 
@@ -27,7 +45,7 @@ class LoginTest extends TestCase
     {
         $uid = 'wronguser';
         $passwd = 'idebian';
-        $group = 'developer';
+        $group = 'developers';
         $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
     }
 
@@ -36,7 +54,7 @@ class LoginTest extends TestCase
     {
         $uid = 'elzenknopje';
         $passwd = 'wrongpassword';
-        $group = 'developer';
+        $group = 'developers';
         $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
     }
 
@@ -45,7 +63,34 @@ class LoginTest extends TestCase
     {
         $uid = 'wronguser';
         $passwd = 'wrongpassword';
-        $group = 'developer';
+        $group = 'developers';
+        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
+    }
+
+    /** @test */
+    public function attemptLogin_wrongGroup1()
+    {
+        $uid = 'elzenknopje';
+        $passwd = 'idebian';
+        $group = 'anders';
+        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
+    }
+
+    /** @test */
+    public function attemptLogin_wrongGroup2()
+    {
+        $uid = 'elzenknopje';
+        $passwd = 'idebian';
+        $group = 'dokters';
+        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
+    }
+
+    /** @test */
+    public function attemptLogin_wrongGroup3()
+    {
+        $uid = 'elzenknopje';
+        $passwd = 'idebian';
+        $group = 'dietisten';
         $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
     }
 
@@ -69,6 +114,10 @@ class LoginTest extends TestCase
                                 return true;
                             } else if ($args[0] == 'cn=Elzen Knop,ou=developers,dc=isala,dc=local' && $args[1] == 'idebian') {
                                 return true;
+                            } else if ($args[0] == 'cn=Jan,ou=dokters,ou=isala,dc=isala,dc=local' && $args[1] == 'jan') {
+                                return true;
+                            } else if ($args[0] == 'cn=diederik,ou=dietisten,ou=isala,dc=isala,dc=local' && $args[1] == 'dieet') {
+                                return true;
                             } else {
                                 return false;
                             }
@@ -78,14 +127,41 @@ class LoginTest extends TestCase
                             switch ($args[0]) {
                                 case 'elzenknopje':
                                     return 'cn=Elzen Knop,ou=developers,dc=isala,dc=local';
+                                case 'j.janssen':
+                                    return 'cn=Jan,ou=dokters,ou=isala,dc=isala,dc=local';
+                                case 'D.i.Eet':
+                                    return 'cn=diederik,ou=dietisten,ou=isala,dc=isala,dc=local';
                                 default:
                                     return '';
                             }
-                            return 'cn=Elzen Knop,ou=developers,dc=isala,dc=local';
                         case 'userInGroup':
+                            switch ($args[0]) {
+                                case 'cn=developers,ou=developers,dc=isala,dc=local':
+                                    if ($args[1] == 'cn=Elzen Knop,ou=developers,dc=isala,dc=local') {
+                                        return true;
+                                    }
+                                    return false;
+                                case 'cn=patienten,ou=patienten,dc=isala,dc=local':
+                                    if ($args[1] == '') {
+                                        return true;
+                                    }
+                                    return false;
+                                case 'cn=dokters,ou=dokters,ou=isala,dc=isala,dc=local':
+                                    if ($args[1] == 'cn=Jan,ou=dokters,ou=isala,dc=isala,dc=local') {
+                                        return true;
+                                    }
+                                    return false;
+                                case 'cn=dietisten,ou=dietisten,ou=isala,dc=isala,dc=local':
+                                    if ($args[1] == 'cn=diederik,ou=dietisten,ou=isala,dc=isala,dc=local') {
+                                        return true;
+                                    }
+                                    return false;
+                                default:
+                                    return false;
+                            }
                             return true;
                         case 'getGroupDNByName':
-                            switch ($args[1]) {
+                            switch ($args[0]) {
                                 case 'developers':
                                     return 'cn=developers,ou=developers,dc=isala,dc=local';
                                 case 'patienten':
@@ -125,8 +201,19 @@ class LoginTest extends TestCase
             $ldap_user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);
 
             // Check if User is in Group
-            $ldap_group_dn = $model->getLDAP()->query('getGroupDNByName', [$group]); // Location of the group in LDAP Directory
-            if (!$model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) return false;
+            if ($group == 'anders') {
+                $possible_groups = ["dietisten", "psychologen", "fysiotherapeuten", "administrators"];
+                foreach ($possible_groups as $possible_group) {
+                    $ldap_group_dn = $model->getLDAP()->query('getGroupDNByName', [$possible_group]); // Location of the group in LDAP Directory
+                    // TODO: search for unique member in unique group
+                    if ($model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) break;
+                    $ldap_group_dn = '';
+                }
+                if ($ldap_group_dn == '') return false;
+            } else {
+                $ldap_group_dn = $model->getLDAP()->query('getGroupDNByName', [$group]); // Location of the group in LDAP Directory
+                if (!$model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) return false;
+            }
 
             // Bind to LDAP with this user
             $ldapbind = $model->getLDAP()->query('bind', [$ldap_user_dn, $passwd]);

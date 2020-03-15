@@ -12,19 +12,22 @@ class Login extends Controller
 
         // Parse data to view
         $this->view('login/index', ['title' => $this->model->getTitle()]);
-        
+
         // Handle Post Request (login)
-        if ($_POST['uid'] && $_POST['passwd']) {
-            if ($this->attemptLogin($_POST['uid'], $_POST['passwd'], "developers")) {
-                header("Location: /public/home");
-            }
-            else {
-                echo "<p style=\"color: #FC240F\">UserID or Password was incorrect</p>";
+        if ($_POST["login"]) {
+            if ($_POST['uid'] && $_POST['passwd'] && $_POST['group']) {
+                if ($this->attemptLogin($_POST['uid'], $_POST['passwd'], $_POST['group'])) {
+                    header("Location: /public/home");
+                } else {
+                    echo "<p style=\"color: #FC240F\">UserID or Password was incorrect</p>";
+                }
+            } else {
+                echo "<p style=\"color: #FC240F\">Please Fill in all Fields</p>";
             }
         }
     }
 
-    protected function attemptLogin($uid, $passwd, $group) 
+    protected function attemptLogin($uid, $passwd, $group)
     {
         if ($this->model->getLDAP()->getConnection()) {
             $ldapbind = $this->model->getLDAP()->query('bind', [NULL, NULL]); //NULL, NULL = anonymous bind
@@ -38,8 +41,19 @@ class Login extends Controller
             $ldap_user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
 
             // Check if User is in Group
-            $ldap_group_dn = $this->model->getLDAP()->query('getGroupDNByName', [$group]); // Location of the group in LDAP Directory
-            if (!$this->model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) return false;
+            if ($group == 'anders') {
+                $possible_groups = ["dietisten", "psychologen", "fysiotherapeuten", "administrators"];
+                foreach ($possible_groups as $possible_group) {
+                    $ldap_group_dn = $this->model->getLDAP()->query('getGroupDNByName', [$possible_group]); // Location of the group in LDAP Directory
+                    // TODO: search for unique member in unique group
+                    if ($this->model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) break;
+                    $ldap_group_dn = '';
+                }
+                if ($ldap_group_dn == '') return false;
+            } else {
+                $ldap_group_dn = $this->model->getLDAP()->query('getGroupDNByName', [$group]); // Location of the group in LDAP Directory
+                if (!$this->model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) return false;
+            }
 
             // Bind to LDAP with this user
             $ldapbind = $this->model->getLDAP()->query('bind', [$ldap_user_dn, $passwd]);

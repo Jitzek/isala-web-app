@@ -3,9 +3,28 @@
   background-color: #50535f;
 }
 
+
 .isala-logo {
   width: 80px;
   height: auto;
+}
+
+.nav-right-side {
+  display: flex;
+  align-items: center;
+}
+
+.btn-user {
+  background: none;
+  border: none;
+  color: #dddddd;
+  padding: 2px;
+  animation: smooth-unhover 0.35s forwards;
+}
+
+.btn-user:hover {
+  animation: smooth-hover 0.35s forwards;
+  text-decoration: none;
 }
 
 .btn-logout {
@@ -20,16 +39,8 @@
   height: auto;
 }
 
-.btn-user {
-  background: none;
-  border: none;
-  color: #dddddd;
-  padding: 2px;
-  animation: smooth-unhover 0.35s forwards;
-}
-.btn-user:hover {
-  animation: smooth-hover 0.35s forwards;
-  text-decoration: none;
+.form-logout {
+  margin: 0 auto;
 }
 
 .btn-hamburger {
@@ -79,63 +90,22 @@
 #sidebar {
   min-width: 250px;
   max-width: 250px;
+  min-height: 100vh;
+  background-color: #50535f;
+  color: #fff;
+  transition: all 0.3s;
 }
 
 #sidebar.active {
   margin-left: -250px;
 }
 
-#sidebar {
-  min-width: 250px;
-  max-width: 250px;
-  min-height: 100vh;
-}
-
-a[data-toggle="collapse"] {
-  position: relative;
-}
-
-@media (max-width: 768px) {
-  #sidebar {
-    margin-left: -250px;
-  }
-  #sidebar.active {
-    margin-left: 0;
-  }
-}
-
-@import "https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700";
-
-body {
-  font-family: "Poppins", sans-serif;
-  background: #fafafa;
-}
-
-p {
-  font-family: "Poppins", sans-serif;
-  font-size: 1.1em;
-  font-weight: 300;
-  line-height: 1.7em;
-  color: #999;
-}
-
-a,
-a:hover,
-a:focus {
+.sidebar-item,
+.sidebar-item:hover,
+.sidebar-item:focus {
   color: inherit;
   text-decoration: none;
   transition: all 0.3s;
-}
-
-#sidebar {
-  background-color: #50535f;
-  color: #fff;
-  transition: all 0.3s;
-}
-
-#sidebar ul p {
-  color: #fff;
-  padding: 10px;
 }
 
 #sidebar ul li a {
@@ -147,16 +117,15 @@ a:focus {
   background-image: linear-gradient(to left, #50535f, #484a53);
 }
 
-#sidebar ul li.active > a,
-a[aria-expanded="true"] {
+#sidebar ul li.active > .sidebar-item,
+.sidebar-item[aria-expanded="true"] {
   color: #fff;
   background-image: linear-gradient(to left, #50535f, #484a53);
 }
-ul ul a {
-  font-size: 0.9em !important;
-  padding-left: 30px !important;
-  background-image: linear-gradient(to left, #50535f, #484a53);
-}
+
+/**
+ * @Keyframes
+*/
 
 @keyframes smooth-unhover {
   from {
@@ -173,5 +142,18 @@ ul ul a {
   }
   to {
     color: white;
+  }
+}
+
+/**
+ * @media
+*/
+
+@media (max-width: 768px) {
+  #sidebar {
+    margin-left: -250px;
+  }
+  #sidebar.active {
+    margin-left: 0;
   }
 }

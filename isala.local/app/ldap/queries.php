@@ -3,6 +3,7 @@
 class LDAPQueries 
 {
     private $conn;
+    private $baseDN = "dc=isala,dc=local";
     public function __construct($connection)
     {
         $this->conn = $connection;
@@ -15,20 +16,27 @@ class LDAPQueries
         return ldap_bind($this->conn, $ldapdn, $ldappass);
     }
 
-    public function uidExists($ldapdn, $uid, $ldap_ObjClass)
+    public function uidExists($uid, $ldap_ObjClass)
     {
         $filter = vsprintf("(&(objectClass=%s)(uid=%s))", $this->arrSanitizeFilter([$ldap_ObjClass, $uid]));
-        $entries = ldap_search($this->conn, $ldapdn, $filter);
+        $entries = ldap_search($this->conn, $this->baseDN, $filter);
         $results = ldap_get_entries($this->conn, $entries);
 
         if ($results["count"] < 1) return false;
         return true;
     }
 
-    public function getDnByUid($ldapdn, $uid) 
+    public function getGroupDNByName($group) {
+        $filter = vsprintf("(&(objectClass=%s)(cn=%s))", $this->arrSanitizeFilter(["groupOfNames", $group]));
+        $entries = ldap_search($this->conn, $this->baseDN, $filter);
+        $results = ldap_get_entries($this->conn, $entries);
+        return $results[0]["dn"];
+    }
+
+    public function getDnByUid($uid) 
     {
         $filter = vsprintf("(uid=%s)", $this->arrSanitizeFilter([$uid]));
-        $entries = ldap_search($this->conn, $ldapdn, $filter);
+        $entries = ldap_search($this->conn, $this->baseDN, $filter);
         $results = ldap_get_entries($this->conn, $entries);
         return $results[0]["dn"];
     }

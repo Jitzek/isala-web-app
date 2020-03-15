@@ -54,13 +54,13 @@ class LDAPQueries
     public function getGroupOfUid($ldap_user_uid)
     {
         $ldapdn = "dc=isala,dc=local";
-        $ldap_user_dn = $this->getDnByUid("dc=isala,dc=local", $ldap_user_uid, "inetOrgPerson");
+        $ldap_user_dn = $this->getDnByUid($ldap_user_uid) | '';
         $ldap_group_ObjClass = "groupOfNames";
         $ldap_user_ObjClass = "member";
         $filter = vsprintf("(&(objectClass=%s)(%s=%s))", $this->arrSanitizeFilter([$ldap_group_ObjClass, $ldap_user_ObjClass, $ldap_user_dn]));
         $entries = ldap_search($this->conn, $ldapdn, $filter);
         $results = ldap_get_entries($this->conn, $entries);
-        if ($results["count"] < 1) return null;
+        if ($results["count"] < 1) return 'group not found';
         return $results[0]['cn'][0];
     }
 

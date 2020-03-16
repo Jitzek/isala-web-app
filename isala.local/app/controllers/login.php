@@ -35,8 +35,9 @@ class Login extends Controller
                 return false;
             }
             // Check if User Exists
-            if (!$this->model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])) return false;
-
+            if (!$this->model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])
+                && !$this->model->getLDAP()->query('uidExists', [$uid, "account"])) return false;
+            
             // Get User's DN
             $ldap_user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
 
@@ -45,7 +46,6 @@ class Login extends Controller
                 $possible_groups = ["dietisten", "psychologen", "fysiotherapeuten", "administrators"];
                 foreach ($possible_groups as $possible_group) {
                     $ldap_group_dn = $this->model->getLDAP()->query('getGroupDNByName', [$possible_group]); // Location of the group in LDAP Directory
-                    // TODO: search for unique member in unique group
                     if ($this->model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) break;
                     $ldap_group_dn = '';
                 }

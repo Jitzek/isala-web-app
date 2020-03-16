@@ -36,7 +36,16 @@ class LoginTest extends TestCase
     {
         $uid = 'D.i.Eet';
         $passwd = 'dieet';
-        $group = 'dietisten';
+        $group = 'anders';
+        $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
+    }
+
+    /** @test */
+    public function attemptLogin_succesful4()
+    {
+        $uid = 'admin';
+        $passwd = 'isaladebian';
+        $group = 'anders';
         $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
     }
 
@@ -90,7 +99,7 @@ class LoginTest extends TestCase
     {
         $uid = 'elzenknopje';
         $passwd = 'idebian';
-        $group = 'dietisten';
+        $group = 'anders';
         $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
     }
 
@@ -118,11 +127,18 @@ class LoginTest extends TestCase
                                 return true;
                             } else if ($args[0] == 'cn=diederik,ou=dietisten,ou=isala,dc=isala,dc=local' && $args[1] == 'dieet') {
                                 return true;
+                            } else if ($args[0] == 'uid=admin,ou=administrators,ou=ccc,ou=isala,dc=isala,dc=local' && $args[1] == 'isaladebian') {
+                                return true;
                             } else {
                                 return false;
                             }
                         case 'uidExists':
-                            return true;
+                            if ($args[1] == 'inetOrgPerson') {
+                                if ($args[0] != 'admin') return true;
+                            } else if ($args[1] == 'account') {
+                                if ($args[0] == 'admin') return true;
+                            }
+                            return false;
                         case 'getDnByUid':
                             switch ($args[0]) {
                                 case 'elzenknopje':
@@ -131,31 +147,27 @@ class LoginTest extends TestCase
                                     return 'cn=Jan,ou=dokters,ou=isala,dc=isala,dc=local';
                                 case 'D.i.Eet':
                                     return 'cn=diederik,ou=dietisten,ou=isala,dc=isala,dc=local';
+                                case 'admin':
+                                    return 'uid=admin,ou=administrators,ou=ccc,ou=isala,dc=isala,dc=local';
                                 default:
                                     return '';
                             }
                         case 'userInGroup':
                             switch ($args[0]) {
                                 case 'cn=developers,ou=developers,dc=isala,dc=local':
-                                    if ($args[1] == 'cn=Elzen Knop,ou=developers,dc=isala,dc=local') {
-                                        return true;
-                                    }
+                                    if ($args[1] == 'cn=Elzen Knop,ou=developers,dc=isala,dc=local') return true;
                                     return false;
                                 case 'cn=patienten,ou=patienten,dc=isala,dc=local':
-                                    if ($args[1] == '') {
-                                        return true;
-                                    }
+                                    if ($args[1] == '') return true;
                                     return false;
                                 case 'cn=dokters,ou=dokters,ou=isala,dc=isala,dc=local':
-                                    if ($args[1] == 'cn=Jan,ou=dokters,ou=isala,dc=isala,dc=local') {
-                                        return true;
-                                    }
+                                    if ($args[1] == 'cn=Jan,ou=dokters,ou=isala,dc=isala,dc=local') return true;
                                     return false;
                                 case 'cn=dietisten,ou=dietisten,ou=isala,dc=isala,dc=local':
-                                    if ($args[1] == 'cn=diederik,ou=dietisten,ou=isala,dc=isala,dc=local') {
-                                        return true;
-                                    }
+                                    if ($args[1] == 'cn=diederik,ou=dietisten,ou=isala,dc=isala,dc=local') return true;
                                     return false;
+                                case 'cn=administrators,ou=administrators,ou=ccc,ou=isala,dc=isala,dc=local':
+                                    if ($args[1] == 'uid=admin,ou=administrators,ou=ccc,ou=isala,dc=isala,dc=local') return true;
                                 default:
                                     return false;
                             }
@@ -174,6 +186,8 @@ class LoginTest extends TestCase
                                     return 'cn=fysiotherapeuten,ou=fysiotherapeuten,ou=isala,dc=isala,dc=local';
                                 case 'psychologen':
                                     return 'cn=psychologen,ou=psychologen,ou=isala,dc=isala,dc=local';
+                                case 'administrators':
+                                    return 'cn=administrators,ou=administrators,ou=ccc,ou=isala,dc=isala,dc=local';
                                 default:
                                     return '';
                             }
@@ -195,7 +209,8 @@ class LoginTest extends TestCase
                 return false;
             }
             // Check if User Exists
-            if (!$model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])) return false;
+            if (!$model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])
+                && !$model->getLDAP()->query('uidExists', [$uid, "account"])) return false;
 
             // Get User's DN
             $ldap_user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);

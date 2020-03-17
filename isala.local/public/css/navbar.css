@@ -1,8 +1,7 @@
 .navbar {
   background-color: #50535f !important;
-  background-color: #50535f;
+  width: 100%;
 }
-
 
 .isala-logo {
   width: 80px;
@@ -82,18 +81,17 @@
  * Sidebar
 */
 
-.wrapper {
-  display: flex;
-  align-items: stretch;
-}
-
 #sidebar {
-  min-width: 250px;
-  max-width: 250px;
+  min-width: 130px;
+  max-width: 130px;
   min-height: 100vh;
+  height: 100%;
   background-color: #50535f;
   color: #fff;
   transition: all 0.3s;
+  position: absolute;
+  align-items: stretch;
+  z-index: 2;
 }
 
 #sidebar.active {
@@ -156,4 +154,15 @@
   #sidebar.active {
     margin-left: 0;
   }
+}
+li{
+    list-style-type: inside;
+  border-top: 1px solid white !important;
+}
+li:last-child{
+      list-style-type: inside;
+  border-bottom: 1px solid white !important;
+}
+a{
+text-align: center;
 }

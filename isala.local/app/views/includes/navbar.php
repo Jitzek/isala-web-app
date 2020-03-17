@@ -8,7 +8,7 @@
 <body>
     <section>
         <nav class="navbar navbar-dark bg-dark justify-content-between">
-            <a class="navbar-brand">
+            <a class="navbar-brand" href="#">
                 <button type="button" id="sidebarCollapse" class="btn-hamburger">
                     <i class="hamburger-menu icon-white"></i>
                 </button>
@@ -34,22 +34,22 @@
             </div>
         </nav>
     </section>
-    <div class="wrapper" style="position: absolute">
         <!-- Sidebar -->
+    <div>
         <nav id="sidebar">
             <ul class="list-unstyled components sidebar-ul">
                 <div style="margin-bottom: 50px;"></div>
                 <li class="active">
-                    <a class="sidebar-item" href="#">Home</a>
+                    <a class="sidebar-item" href="#"><img src="../public/imgs/home_white.png" width="50" height="50"><br>Home</a>
                 </li>
                 <li>
-                    <a class="sidebar-item" href="#">Documenten</a>
+                    <a class="sidebar-item" href="#"><img src="../public/imgs/documents_white.png" width="50" height="50"><br>Documenten</a>
                 </li>
                 <li>
-                    <a class="sidebar-item" href="#">Voortgang</a>
+                    <a class="sidebar-item" href="#"><img src="../public/imgs/chart_white.png" width="50" height="50"><br>Voortgang</a>
                 </li>
                 <li>
-                    <a class="sidebar-item" href="#">Afspraken</a>
+                    <a class="sidebar-item" href="#"><img src="../public/imgs/calendar_white.png" width="50" height="50"><br>Agenda</a>
                 </li>
             </ul>
         </nav>

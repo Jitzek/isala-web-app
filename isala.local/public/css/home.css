@@ -1,0 +1,52 @@
+#knopke{
+    background-color: #50535f;
+    color: white;
+    width: 500px;
+    height: 200px;
+    border: none;
+    margin: 5px;
+    vertical-align: middle;
+    font-size: 30px !important;
+    cursor: pointer;
+}
+#knopke img{
+    width: 120px;
+    height: 120px;
+}
+#content{
+    width: 100%;
+    height: 100%;
+}
+#knopkes{
+    grid-template-columns: auto auto;
+    display: grid;
+    justify-content: center;
+    padding-top: 40px;
+    z-index: 1 !important;
+}
+
+@media (max-width: 1383px){
+    #knopke{
+        width: 500px;
+        height: 200px;
+        vertical-align: middle;
+    }
+    #knopkes{
+        grid-template-columns: auto;
+    }
+}
+@media (max-width: 500px){
+    #knopke{
+        width: 45vw;
+        height: 45vw;
+        vertical-align: middle;
+        font-size: 20px !important;
+    }
+    #knopke:after{
+        padding-bottom: 100%;
+        content: "";
+    }
+    #knopkes{
+        grid-template-columns: auto auto;
+    }
+}

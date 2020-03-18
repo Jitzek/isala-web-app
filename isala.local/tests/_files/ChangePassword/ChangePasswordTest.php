@@ -101,6 +101,24 @@ class ChangePasswordTest extends TestCase
                             }
                         case 'changeUserPassword':
                             return true;
+                        case 'getGroupOfUser':
+                            return '';
+                    }
+                })
+            );
+
+        $db = $this->getMockBuilder(DBConnection::class)
+            ->getMock();
+
+        $db->method('getConnection')
+            ->willReturn(true);
+
+        $db->method('query')
+            ->will(
+                $this->returnCallback(function ($arg, $args) {
+                    switch ($arg) {
+                        case 'updateLastPasswordChange':
+                            return;
                     }
                 })
             );
@@ -108,45 +126,94 @@ class ChangePasswordTest extends TestCase
         $model = $this->getMockBuilder(ChangePasswordModel::class)
             ->getMock();
 
+        $model->method('getDB')
+            ->willReturn($db);
+
         $model->method('getLDAP')
             ->willReturn($ldap);
 
         /* ----- Done configuring Mocks ----- */
 
-        if ($model->getLDAP()->getConnection()) {
-            if (!$model->getLDAP()->query('bind', [NULL, NULL])) return false; //NULL, NULL = anonymous bind
-
-             // Check if User Exists
-             if (
-                !$model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])
-                && !$model->getLDAP()->query('uidExists', [$uid, "account"])
-            ) return false;
-
-            // Get user DN
-            $user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);
-
-            // Check if user is valid and/or given password is correct
-            if (!$model->getLDAP()->query('bind', [$user_dn, $prev_password])) return false;
-
-            // Change password
-            if (!$model->getLDAP()->query('changeUserPassword', [$user_dn, $new_password])) return false;
-
-            return true;
-        } else {
-            die('Connection to LDAP service failed');
+        if (!$model->getLDAP()->getConnection()) {
+            // Display error message
+            return false;
         }
-        return false;
+        if (!$model->getDB()->getConnection()) {
+            // Display error message
+            return false;
+        }
+
+        if (!$model->getLDAP()->query('bind', [NULL, NULL])) return false; //NULL, NULL = anonymous bind
+
+        // Check if User Exists
+        if (
+            !$model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])
+            && !$model->getLDAP()->query('uidExists', [$uid, "account"])
+        ) return false;
+
+        // Get user DN
+        $user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);
+
+        // Check if user is valid and/or given password is correct
+        if (!$model->getLDAP()->query('bind', [$user_dn, $prev_password])) return false;
+
+        // Change password
+        if (!$model->getLDAP()->query('changeUserPassword', [$user_dn, $new_password])) return false;
+
+        // Edit Last Password Change column in Database
+        $group = $model->getLDAP()->query('getGroupOfUser', [$uid]);
+        $table = $this->convertGroupToTable($group);
+        $model->getDB()->query('updateLastPasswordChange', [$uid, $table]);
+
+        return true;
+    }
+
+    private function convertGroupToTable($group)
+    {
+        switch ($group) {
+            case 'patienten':
+                return 'Patiënt';
+            case 'dokters':
+                return 'Dokter';
+            case 'dietisten':
+                return 'Diëtist';
+            case 'dokters':
+                return 'Dokter';
+            case 'psychologen':
+                return 'Psycholoog';
+            case 'fysiotherapeuten':
+                return 'Fysiotherapeut';
+            case 'administrators':
+                return 'Admin';
+            default:
+                return '';
+        }
     }
 }
 
 class ChangePasswordModel
 {
+    public function getDB()
+    {
+    }
+
     public function getLDAP()
     {
     }
 }
 
 class LDAPConnection
+{
+    public function getConnection()
+    {
+    }
+
+    public function query()
+    {
+    }
+}
+
+class DBConnection
 {
     public function getConnection()
     {

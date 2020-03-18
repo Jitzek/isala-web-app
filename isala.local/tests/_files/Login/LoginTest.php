@@ -18,8 +18,7 @@ class LoginTest extends TestCase
     {
         $uid = 'elzenknopje';
         $passwd = 'idebian';
-        $group = 'developers';
-        $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
+        $this->assertTrue($this->attemptLogin($uid, $passwd));
     }
 
     /** @test */
@@ -27,8 +26,7 @@ class LoginTest extends TestCase
     {
         $uid = 'j.janssen';
         $passwd = 'jan';
-        $group = 'dokters';
-        $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
+        $this->assertTrue($this->attemptLogin($uid, $passwd));
     }
 
     /** @test */
@@ -36,8 +34,7 @@ class LoginTest extends TestCase
     {
         $uid = 'D.i.Eet';
         $passwd = 'dieet';
-        $group = 'anders';
-        $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
+        $this->assertTrue($this->attemptLogin($uid, $passwd));
     }
 
     /** @test */
@@ -45,8 +42,7 @@ class LoginTest extends TestCase
     {
         $uid = 'admin';
         $passwd = 'isaladebian';
-        $group = 'anders';
-        $this->assertTrue($this->attemptLogin($uid, $passwd, $group));
+        $this->assertTrue($this->attemptLogin($uid, $passwd));
     }
 
     /** @test */
@@ -54,8 +50,7 @@ class LoginTest extends TestCase
     {
         $uid = 'wronguser';
         $passwd = 'idebian';
-        $group = 'developers';
-        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
+        $this->assertFalse($this->attemptLogin($uid, $passwd));
     }
 
     /** @test */
@@ -63,8 +58,7 @@ class LoginTest extends TestCase
     {
         $uid = 'elzenknopje';
         $passwd = 'wrongpassword';
-        $group = 'developers';
-        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
+        $this->assertFalse($this->attemptLogin($uid, $passwd));
     }
 
     /** @test */
@@ -72,35 +66,7 @@ class LoginTest extends TestCase
     {
         $uid = 'wronguser';
         $passwd = 'wrongpassword';
-        $group = 'developers';
-        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
-    }
-
-    /** @test */
-    public function attemptLogin_wrongGroup1()
-    {
-        $uid = 'elzenknopje';
-        $passwd = 'idebian';
-        $group = 'anders';
-        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
-    }
-
-    /** @test */
-    public function attemptLogin_wrongGroup2()
-    {
-        $uid = 'elzenknopje';
-        $passwd = 'idebian';
-        $group = 'dokters';
-        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
-    }
-
-    /** @test */
-    public function attemptLogin_wrongGroup3()
-    {
-        $uid = 'elzenknopje';
-        $passwd = 'idebian';
-        $group = 'anders';
-        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
+        $this->assertFalse($this->attemptLogin($uid, $passwd));
     }
 
     /** @test */
@@ -108,11 +74,10 @@ class LoginTest extends TestCase
     {
         $uid = 'locked';
         $passwd = 'lock';
-        $group = 'patienten';
-        $this->assertFalse($this->attemptLogin($uid, $passwd, $group));
+        $this->assertFalse($this->attemptLogin($uid, $passwd));
     }
 
-    public function attemptLogin($uid, $passwd, $group)
+    public function attemptLogin($uid, $passwd)
     {
         /**
          * Configuring Mocks
@@ -196,6 +161,21 @@ class LoginTest extends TestCase
                                 default:
                                     return '';
                             }
+                        case 'getGroupOfUid':
+                            switch ($args[0]) {
+                                case 'elzenknopje':
+                                    return 'developers';
+                                case 'j.janssen':
+                                    return 'dokters';
+                                case 'D.i.Eet':
+                                    return 'dietisten';
+                                case 'admin':
+                                    return 'administrators';
+                                case 'locked':
+                                    return 'patienten';
+                                default:
+                                    return '';
+                            }
                     }
                 })
             );
@@ -252,34 +232,11 @@ class LoginTest extends TestCase
         // Get User's DN
         $ldap_user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);
 
-        // Check if User is in Group
-        if ($group == 'anders') {
-            $possible_groups = ["dietisten", "psychologen", "fysiotherapeuten", "administrators"];
-            foreach ($possible_groups as $possible_group) {
-                $ldap_group_dn = $model->getLDAP()->query('getGroupDNByName', [$possible_group]); // Location of the group in LDAP Directory
-                if ($model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) {
-                    // Check if account is locked
-                    $table = $this->getTableNameForPostedGroup($possible_group);
-                    if ($model->getDB()->query('userIsLocked', [$uid, $table])) {
-                        // Display error message
-                        return false;
-                    }
-                    break;
-                }
-                $ldap_group_dn = '';
-            }
-            if ($ldap_group_dn == '') return false;
-        } else {
-            if ($group != 'developers' && $group != 'patienten' && $group != 'dokters') return false; //TODO: remove developers
-            $ldap_group_dn = $model->getLDAP()->query('getGroupDNByName', [$group]); // Location of the group in LDAP Directory
-            if (!$model->getLDAP()->query('userInGroup', [$ldap_group_dn, $ldap_user_dn, "groupOfNames", "member"])) return false;
-
-            // Check if account is locked
-            $table = $this->getTableNameForPostedGroup($group);
-            if ($model->getDB()->query('userIsLocked', [$uid, $table])) {
-                // Display error message
-                return false;
-            }
+        // Check if account is locked
+        $table = $this->convertGroupToTable($model->getLDAP()->query('getGroupOfUid', [$uid]));
+        if ($model->getDB()->query('userIsLocked', [$uid, $table])) {
+            // Display error message
+            return false;
         }
 
         // Bind to LDAP with this user (check password)
@@ -289,7 +246,7 @@ class LoginTest extends TestCase
         return true;
     }
 
-    private function getTableNameForPostedGroup($group)
+    private function convertGroupToTable($group)
     {
         switch ($group) {
             case 'patienten':

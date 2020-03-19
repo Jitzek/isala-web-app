@@ -18,7 +18,11 @@ class ChangePassword extends Controller
         $this->view('changepassword/index', ['title' => $this->model->getTitle()]);
 
         if ($_POST['change_password']) {
-            if ($this->validatePassword($_POST['prev_password'], $_POST['new_password'])) {
+            if (!$_POST['prev_password'] || !$_POST['new_password'] || !$_POST['new_password2']) {
+                echo "<p style=\"color: #FC240F\">Please fill in all fields</p>";
+                return;
+            }
+            if ($this->validatePassword($_POST['new_password'], $_POST['new_password2'])) {
                 if (!$this->attemptPasswordChange($_SESSION['uid'], $_POST['prev_password'], $_POST['new_password'])) {
                     if (strlen($this->err_msg) < 1) echo "<p style=\"color: #FC240F\">Something went wrong</p>";
                     else echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
@@ -31,6 +35,18 @@ class ChangePassword extends Controller
 
     protected function attemptPasswordChange($uid, $prev_password, $new_password)
     {
+        $user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
+        // Check if prev_password is correct
+        if (!$this->model->getLDAP()->query('bind', [$user_dn, $prev_password])) {
+            $this->err_msg = 'Password is incorrect';
+            return false;
+        }
+        // Check if passwords are the same 
+        if ($prev_password == $new_password) {
+            $this->err_msg = 'New Password can\'t be the same as the old Password';
+            return false;
+        }
+
         if (!$this->model->getLDAP()->getConnection()) {
             $this->err_msg = 'Connection Failed';
             return false;
@@ -90,16 +106,12 @@ class ChangePassword extends Controller
         }
     }
 
-    private function validatePassword($prev_password, $new_password)
+    private function validatePassword($new_password, $new_password_validation)
     {
-        // Check if passwords are the same 
-        if ($prev_password == $new_password) {
-            $this->err_msg = 'New Password can\'t be the same as the old Password';
+        if ($new_password != $new_password_validation) {
+            $this->err_msg = 'The two new passwords don\'t match';
             return false;
         }
-
-        // Check if new password complies to the given requirements
-
         // Length of password should be 8 characters or longer
         if (strlen($new_password) < 8) {
             $this->err_msg = 'New Password needs to be at least 8 characters long';

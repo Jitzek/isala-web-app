@@ -64,6 +64,10 @@ class LDAPQueries
         return $results[0]['cn'][0];
     }
 
+    public function add_inetOrgPerson($uid, $firstname, $lastname, $password) {
+        
+    }
+
     /**
      * Sanitizes elements of array to be used in a LDAP Filter
     */

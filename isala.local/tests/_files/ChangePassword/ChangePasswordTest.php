@@ -57,7 +57,6 @@ class ChangePasswordTest extends TestCase
                             } else if ($args[1] == 'account') {
                                 if ($args[0] == 'account2') return true;
                             }
-                            $this->count++;
                             return false;
                         case 'getDnByUid':
                             switch ($args[0]) {
@@ -134,12 +133,22 @@ class ChangePasswordTest extends TestCase
 
         /* ----- Done configuring Mocks ----- */
 
-        if (!$model->getLDAP()->getConnection()) {
+        $user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);
+        // Check if prev_password is correct
+        if (!$model->getLDAP()->query('bind', [$user_dn, $prev_password])) {
             // Display error message
             return false;
         }
-        if (!$model->getDB()->getConnection()) {
+        // Check if passwords are the same 
+        if ($prev_password == $new_password) {
             // Display error message
+            return false;
+        }
+
+        if (!$model->getLDAP()->getConnection()) {
+            return false;
+        }
+        if (!$model->getDB()->getConnection()) {
             return false;
         }
 
@@ -155,7 +164,10 @@ class ChangePasswordTest extends TestCase
         $user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);
 
         // Check if user is valid and/or given password is correct
-        if (!$model->getLDAP()->query('bind', [$user_dn, $prev_password])) return false;
+        if (!$model->getLDAP()->query('bind', [$user_dn, $prev_password])) {
+            // Display error message
+            return false;
+        }
 
         // Change password
         if (!$model->getLDAP()->query('changeUserPassword', [$user_dn, $new_password])) return false;

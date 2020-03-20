@@ -11,15 +11,11 @@ class create_user extends Controller
         // Define Model to be used
         $this->model = $this->model('CreateUserModel');
 
-        //$this->attemptUserCreation($uid, $firstname, $lastname, $password);
-
-
         if (!$_SESSION['uid']) {
             return header("Location: /public/login");
         }
 
         // Define Model to be used
-        //$model = $this->model('CreateUserModel');
         $user = $this->model('UserModel');
 
         // Parse data to view (beware of order)
@@ -28,6 +24,8 @@ class create_user extends Controller
         $this->view('createuser/index', ['title' => $this->model->getTitle(), 'name' => $user->getName(), 'group' => $user->getGroup()]);
         $this->view('includes/footer');
 
+
+        // Are fields left empty
         if($_POST['uid']&&$_POST['voornaam']&&$_POST['sn']&&$_POST['passwd']) {
             if ($_POST["create_user"]) {
                 $this->attemptUserCreation($_POST['uid'], $_POST['voornaam'], $_POST['sn'], $_POST['passwd']);
@@ -43,11 +41,13 @@ class create_user extends Controller
 
     protected function attemptUserCreation($uid, $firstname, $lastname, $password)
     {
+        // Establish if Ldap connection is possible
         if($this->model->getLDAP()->getConnection()) {
 
-            //$ldap_group_dn = $this->model->getLDAP()->query('getGroupDNByName', ['patienten']);
             $ds = $this->model->getLDAP()->getConnection();
             $r = $this->model->getLDAP()->query('bind', ["cn=admin,dc=isala,dc=local", "isaladebian"]); //NULL, NULL = anonymous bind
+
+            // Is Ldap query successful
             if (!$r) {
                 if ($this->err_msg == '') {
                     echo "<div id=\"accountinput\" >";
@@ -58,6 +58,7 @@ class create_user extends Controller
                 return false;
             }
 
+            // Get distinguished name to get path
             $dn = 'cn='.$firstname." ".$lastname.',ou=patienten,dc=isala,dc=local';
 
             //check if user already exists
@@ -71,6 +72,7 @@ class create_user extends Controller
                 return false;
             }
 
+            // Get information from form
             $info["cn"] = $firstname." ".$lastname;
             $info['objectclass'][0] = "inetOrgPerson";
             $info['objectclass'][1] = "organizationalPerson";
@@ -79,16 +81,16 @@ class create_user extends Controller
             $info["sn"] = ldap_escape($lastname, '', LDAP_ESCAPE_FILTER);
             $info["givenName"] = ldap_escape($uid, '', LDAP_ESCAPE_FILTER);
             $info["uid"] = ldap_escape($uid, '', LDAP_ESCAPE_FILTER);
-            //$info["userPassword"] = $password;
+
+            // Hash & encrypt the password
             $salt = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+?><":}{|-=[];,./', 6)), 0, 6);
             $info["userPassword"] = '{SSHA}' . base64_encode(sha1($password.$salt, true) . $salt);
 
 
-            //$dn = "cn=patienten,ou=patienten,dc=isala,dc=local";
-
+            //Attempt to add this new user
             $r = ldap_add($ds, $dn, $info);
 
-            //$r = ldap_mod_add($ds,$dn,$info);
+            //Check if user successfully added
             if ($r)
             {
                 if ($this->err_msg == '') {
@@ -112,6 +114,7 @@ class create_user extends Controller
 
             ldap_close($ds);
         } else {
+            // Ldap connection could not be established
             if ($this->err_msg == '') {
                 echo "<div id=\"accountinput\" >";
                 echo "<p style=\"color: #FC240F\">Connectie met LDAP service is mislukt.</p>";

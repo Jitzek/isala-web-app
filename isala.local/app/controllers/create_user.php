@@ -5,6 +5,7 @@ require_once('../app/core/Controller.php');
 class create_user extends Controller
 {
     private $model;
+    private $err_msg = '';
     public function index()
     {
         // Define Model to be used
@@ -27,8 +28,16 @@ class create_user extends Controller
         $this->view('createuser/index', ['title' => $this->model->getTitle(), 'name' => $user->getName(), 'group' => $user->getGroup()]);
         $this->view('includes/footer');
 
-        if ($_POST["create_user"]) {
-            $this->attemptUserCreation($_POST['uid'],$_POST['voornaam'],$_POST['sn'], $_POST['passwd']);
+        if($_POST['uid']&&$_POST['voornaam']&&$_POST['sn']&&$_POST['passwd']) {
+            if ($_POST["create_user"]) {
+                $this->attemptUserCreation($_POST['uid'], $_POST['voornaam'], $_POST['sn'], $_POST['passwd']);
+            }
+        } else {
+            if ($this->err_msg == '') {
+                echo "<div id=\"accountinput\" >";
+                echo "<p style=\"color: #0000ff\">Vul alle velden in om een gebruiker toe te voegen.</p>";
+                echo "</div>";
+            } else echo "<p style=\"color: #0000ff\">" . htmlentities($this->err_msg) . "</p>";
         }
     }
 
@@ -40,9 +49,12 @@ class create_user extends Controller
             $ds = $this->model->getLDAP()->getConnection();
             $r = $this->model->getLDAP()->query('bind', ["cn=admin,dc=isala,dc=local", "isaladebian"]); //NULL, NULL = anonymous bind
             if (!$r) {
-                echo "<div id=\"accountinput\">";
-                die('Kan geen verbinding maken');
-                echo "</div>";
+                if ($this->err_msg == '') {
+                    echo "<div id=\"accountinput\" >";
+                    echo "<p style=\"color: #FC240F\">Er kan geen verbinding worden gemaakt.</p>";
+                    echo "</div>";
+                } else echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
+
                 return false;
             }
 
@@ -50,9 +62,13 @@ class create_user extends Controller
 
             //check if user already exists
             if ($this->model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])){
-                echo "<div id=\"accountinput\">";
-                die('Deze gebruikersnaam bestaat al.');
-                echo "</div>";
+                if ($this->err_msg == '') {
+                    echo "<div id=\"accountinput\" >";
+                    echo "<p style=\"color: #FC240F\">Deze gebruiker bestaat al.</p>";
+                    echo "</div>";
+                } else echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
+
+                return false;
             }
 
             $info["cn"] = $firstname." ".$lastname;
@@ -75,23 +91,34 @@ class create_user extends Controller
             //$r = ldap_mod_add($ds,$dn,$info);
             if ($r)
             {
-                echo "<div id=\"accountinput\">";
-                die('De gebruiker is succesvol aangemaakt.');
-                echo "</div>";
-                //echo 'Success';
+                if ($this->err_msg == '') {
+                    echo "<div id=\"accountinput\" >";
+                    echo "<p style=\"color: #008000\">De gebruiker is succesvol aangemaakt.</p>";
+                    echo "</div>";
+                } else echo "<p style=\"color: #008000\">" . htmlentities($this->err_msg) . "</p>";
+
+                return false;
             }
             else
             {
-                echo "<div id=\"accountinput\">";
-                die('Er is iets fout gegaan.');
-                echo "</div>";
+                if ($this->err_msg == '') {
+                    echo "<div id=\"accountinput\" >";
+                    echo "<p style=\"color: #FC240F\">Er kan geen verbinding gemaakt worden.</p>";
+                    echo "</div>";
+                } else echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
+
+                return false;
             }
 
             ldap_close($ds);
         } else {
-            echo "<div id=\"accountinput\">";
-            die('Connection to LDAP service failed.');
-            echo "</div>";
+            if ($this->err_msg == '') {
+                echo "<div id=\"accountinput\" >";
+                echo "<p style=\"color: #FC240F\">Connectie met LDAP service is mislukt.</p>";
+                echo "</div>";
+            } else echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
+
+            return false;
         }
     }
 }

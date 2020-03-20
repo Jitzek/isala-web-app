@@ -17,7 +17,7 @@
     <input type="text" name="voornaam" />
     <p>Achternaam:</p>
     <input type="text" name="sn" />
-    <p>Gebruikersnaam:</p>
+    <p>BSN:</p>
     <input type="text" name="uid" />
     <p>Wachtwoord:</p>
     <input type="password" name="passwd" />

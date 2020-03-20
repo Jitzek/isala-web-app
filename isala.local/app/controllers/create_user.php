@@ -78,9 +78,9 @@ class create_user extends Controller
             $info['objectclass'][1] = "organizationalPerson";
             $info['objectclass'][1] = "person";
             $info['objectclass'][2] = "top";
-            $info["sn"] = ldap_escape($lastname, '', LDAP_ESCAPE_FILTER);
-            $info["givenName"] = ldap_escape($uid, '', LDAP_ESCAPE_FILTER);
-            $info["uid"] = ldap_escape($uid, '', LDAP_ESCAPE_FILTER);
+            $info["sn"] = ldap_escape($lastname, '', LDAP_ESCAPE_DN);
+            $info["givenName"] = ldap_escape($uid, '', LDAP_ESCAPE_DN);
+            $info["uid"] = ldap_escape($uid, '', LDAP_ESCAPE_DN);
 
             // Hash & encrypt the password
             $salt = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+?><":}{|-=[];,./', 6)), 0, 6);

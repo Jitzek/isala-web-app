@@ -11,6 +11,15 @@ class DBQueries
 
     public function succesfulLoginAttempt($uid, $ip)
     {
+        // Reset login attempts to give user another 5 tries without resetting the time blocked penalty
+        $query = $this->conn->prepare("UPDATE BlockedIP SET Tries = FLOOR(Tries / 5) * 5 WHERE `UID` = ? AND IP = ?");
+        $query->bind_param("ss", $uid, $ip);
+        $query->execute();
+        $query->close();
+    }
+
+    public function succesfulTwoFactor($uid, $ip)
+    {
         // Reset Failed Attempts
         $query = $this->conn->prepare("DELETE FROM BlockedIP WHERE `UID` = ? AND IP = ?");
         $query->bind_param("ss", $uid, $ip);
@@ -20,26 +29,22 @@ class DBQueries
 
     public function failedLoginAttempt($uid, $ip)
     {
-        $query = $this->conn->prepare("SELECT COUNT(IP) FROM BlockedIP WHERE `UID` = ? AND IP = ?");
-        $query->bind_param("ss", $uid, $ip);
+        // Insert IP and UID into Blocked IP if a combination of the don't exist already
+        $query = $this->conn->prepare(  "INSERT INTO BlockedIP (IP, IsBlocked, Tries, `UID`)
+                                        SELECT ?, FALSE, 0, ? FROM DUAL
+                                        WHERE NOT EXISTS (
+                                            SELECT IP FROM BlockedIP WHERE IP = ? AND `UID` = ?
+                                        ) LIMIT 1;");
+        $query->bind_param("ssss", $ip, $uid, $ip, $uid);
         $query->execute();
-        $query->bind_result($this->result);
-        $query->fetch();
         $query->close();
-        // If entry doesn't exist
-        if ($this->result < 1) {
-            // Add ip to database
-            $query = $this->conn->prepare("INSERT INTO BlockedIP (IP, IsBlocked, Tries, `UID`) VALUES (?, FALSE, 0, ?)");
-            $query->bind_param("ss", $ip, $uid);
-            $query->execute();
-            $query->close();
-        }
+
+        // Update amount of Tries by adding 1
         $query = $this->conn->prepare("UPDATE BlockedIP SET Tries = Tries + 1 WHERE `UID` = ? AND IP = ?");
         $query->bind_param("ss", $uid, $ip);
         $query->execute();
         $query->close();
         $this->blockIPIfLimitExceeded($uid, $ip);
-        return;
     }
 
     private function blockIPIfLimitExceeded($uid, $ip)
@@ -54,7 +59,7 @@ class DBQueries
 
         // Get expiration date of block
         $minutes = floor(($this->result / $limit < 30 ? $this->result / $limit : 30));
-        $expiration = date('Y-m-d H:i:s',strtotime("+{$minutes} minutes",strtotime(date("Y-m-d H:i:s"))));
+        $expiration = date('Y-m-d H:i:s', strtotime("+{$minutes} minutes", strtotime(date("Y-m-d H:i:s"))));
 
         $query = $this->conn->prepare("UPDATE BlockedIP SET IsBlocked = TRUE, Expiration = ? WHERE IP = ? AND `UID` = ? AND (TRIES % ?) = 0");
         $query->bind_param("sssi", $expiration, $ip, $uid, $limit);

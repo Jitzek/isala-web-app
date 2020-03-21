@@ -107,7 +107,7 @@ class DBQueries
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
         $newdate = date("d/m/Y");
-        $query = $this->conn->prepare("UPDATE {$table} SET Last_Password_Change = ? WHERE UID = ?");
+        $query = $this->conn->prepare("UPDATE {$table} SET Last_Password_Change = ? WHERE `UID` = ?");
         $query->bind_param("ss", $newdate, $uid);
         $query->execute();
         $query->close();
@@ -118,7 +118,7 @@ class DBQueries
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
         $tfa = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 6)), 0, 6);
-        $query = $this->conn->prepare("UPDATE {$table} SET 2FA = ? WHERE UID = ?");
+        $query = $this->conn->prepare("UPDATE {$table} SET 2FA = ? WHERE `UID` = ?");
         $query->bind_param("ss", $tfa, $uid);
         $query->execute();
         $query->close();
@@ -128,7 +128,7 @@ class DBQueries
     {
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
-        $query = $this->conn->prepare("SELECT 2FA FROM {$table} WHERE UID = ?");
+        $query = $this->conn->prepare("SELECT 2FA FROM {$table} WHERE `UID` = ?");
         $query->bind_param("s", $uid);
         $query->execute();
         $query->bind_result($this->result);
@@ -141,7 +141,7 @@ class DBQueries
     {
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
-        $query = $this->conn->prepare("UPDATE {$table} SET Token = ? WHERE UID = ?");
+        $query = $this->conn->prepare("UPDATE {$table} SET Token = ? WHERE `UID` = ?");
         $query->bind_param("ss", $token, $uid);
         $query->execute();
         $query->close();
@@ -151,7 +151,7 @@ class DBQueries
     {
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
-        $query = $this->conn->prepare("SELECT Token FROM {$table} WHERE UID = ?");
+        $query = $this->conn->prepare("SELECT Token FROM {$table} WHERE `UID` = ?");
         $query->bind_param("s", $uid);
         $query->execute();
         $query->bind_result($this->result);
@@ -166,15 +166,15 @@ class DBQueries
             case 'patienten':
                 return 'Patiënt';
             case 'dokters':
-                return 'Dokter';
+                return 'Gecontracteerd';
             case 'dietisten':
-                return 'Diëtist';
+                return 'Gecontracteerd';
             case 'dokters':
-                return 'Dokter';
+                return 'Gecontracteerd';
             case 'psychologen':
-                return 'Psycholoog';
+                return 'Gecontracteerd';
             case 'fysiotherapeuten':
-                return 'Fysiotherapeut';
+                return 'Gecontracteerd';
             case 'administrators':
                 return 'Admin';
             default:

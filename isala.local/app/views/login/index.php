@@ -12,22 +12,22 @@
 
 <body>
     <h1>Login Page</h1>
-    <form method="post" action="/public/login">
-        <input type="radio" name="group" value="developers" />
-        <label>Developer</label><br>
-        <input type="radio" name="group" value="patienten" />
-        <label>Patiënt</label><br>
-        <input type="radio" name="group" value="dokters" />
-        <label>Dokter</label><br>
-        <input type="radio" name="group" value="anders" />
-        <label>Anders</label><br>
-        <br>
-        <input type="text" name="uid" />
-        <input type="password" name="passwd" />
-        <button type="submit" name="login" value="login">
-            Submit
-        </button>
-    </form>
+    <?php if ($data['2fa'] === true) : ?>
+        <form method="post" action="">
+            <input type="text" name="2fa_code" />
+            <button type="submit" name="2fa_submit" value="2fa_submit">
+                2FA
+            </button>
+        </form>
+    <?php else : ?>
+        <form method="post" action="">
+            <input type="text" name="uid" />
+            <input type="password" name="passwd" />
+            <button type="submit" name="login" value="login">
+                Log In
+            </button>
+        </form>
+    <?php endif; ?>
 </body>
 
 </html>

@@ -77,6 +77,14 @@ class LoginTest extends TestCase
         $this->assertFalse($this->attemptLogin($uid, $passwd));
     }
 
+    /** @test */
+    public function attemptLogin_lockedExpired()
+    {
+        $uid = 'lockedexpired';
+        $passwd = 'lock';
+        $this->assertTrue($this->attemptLogin($uid, $passwd));
+    }
+
     public function attemptLogin($uid, $passwd)
     {
         /**
@@ -99,6 +107,7 @@ class LoginTest extends TestCase
                             else if ($args[0] == 'cn=diederik,ou=dietisten,ou=isala,dc=isala,dc=local' && $args[1] == 'dieet') return true;
                             else if ($args[0] == 'uid=admin,ou=administrators,ou=ccc,ou=isala,dc=isala,dc=local' && $args[1] == 'isaladebian') return true;
                             else if ($args[0] == 'uid=locked,ou=patienten,dc=isala,dc=local' && $args[1] == 'lock') return true;
+                            else if ($args[0] == 'uid=lockedexpired,ou=patienten,dc=isala,dc=local' && $args[1] == 'lock') return true;
                             return false;
                         case 'uidExists':
                             if ($args[1] == 'inetOrgPerson') {
@@ -118,6 +127,8 @@ class LoginTest extends TestCase
                                 case 'admin':
                                     return 'uid=admin,ou=administrators,ou=ccc,ou=isala,dc=isala,dc=local';
                                 case 'locked':
+                                    return 'uid=locked,ou=patienten,dc=isala,dc=local';
+                                case 'lockedexpired':
                                     return 'uid=locked,ou=patienten,dc=isala,dc=local';
                                 default:
                                     return '';
@@ -173,6 +184,8 @@ class LoginTest extends TestCase
                                     return 'administrators';
                                 case 'locked':
                                     return 'patienten';
+                                case 'lockedexpired':
+                                    return 'patienten';
                                 default:
                                     return '';
                             }
@@ -190,12 +203,14 @@ class LoginTest extends TestCase
             ->will(
                 $this->returnCallback(function ($arg, $args) {
                     switch ($arg) {
-                        case 'userIsLocked':
-                            if ($args[0] == 'elzenknopje') return false;
-                            else if ($args[0] == 'j.janssen' && $args[1] == 'Dokter') return false;
-                            else if ($args[0] == 'D.i.Eet' && $args[1] == 'Diëtist') return false;
-                            else if ($args[0] == 'admin') return false;
-                            else if ($args[0] == 'locked' && $args[1] == 'Patiënt') return true;
+                        case 'lockedIPArray':
+                            if ($args[0] == 'locked') return ['0.0.0.0', '1.1.1.1'];
+                            else if ($args[0] == 'lockedexpired') return ['1.1.1.1', '0.0.0.0'];
+                            return [];
+                        case 'lockExpired':
+                            if ($args[0] == 'locked' && $args[1] == '0.0.0.0') return true;
+                            else if ($args[0] == 'locked' && $args[1] == '1.1.1.1') return false;
+                            else if ($args[0] == 'lockedexpired' && $args[1] == '1.1.1.1') return true;
                             return true;
                     }
                 })
@@ -214,15 +229,15 @@ class LoginTest extends TestCase
 
         // Check for LDAP Connection
         if (!$model->getLDAP()->getConnection()) {
-            // Display error message
+            $err_msg = 'Connection Failed';
             return false;
         }
         if (!$model->getDB()->getConnection()) {
-            // Display error message
+            $err_msg = 'Connection Failed';
             return false;
         }
-
         if (!$model->getLDAP()->query('bind', [NULL, NULL])) return false;
+
         // Check if User Exists
         if (
             !$model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])
@@ -232,18 +247,33 @@ class LoginTest extends TestCase
         // Get User's DN
         $ldap_user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);
 
-        // Check if account is locked
-        $table = $this->convertGroupToTable($model->getLDAP()->query('getGroupOfUid', [$uid]));
-        if ($model->getDB()->query('userIsLocked', [$uid, $table])) {
-            // Display error message
-            return false;
+        // Check if ip is blocked
+        $locked_ip_arr = $model->getDB()->query('lockedIPArray', [$uid]);
+        if (count($locked_ip_arr) > 0) {
+            foreach($locked_ip_arr as $locked_ip) {
+                // If ip is locked
+                if ($locked_ip == $this->getUserIP()) {
+                    // Check if block has expired
+                    if (!$model->getDB()->query('lockExpired', [$uid, $locked_ip])) {
+                        $err_msg = 'Account Locked for exceeding login attempts, please wait before trying again';
+                        return false;
+                    }
+                }
+            }
         }
+
 
         // Bind to LDAP with this user (check password)
         if (!$model->getLDAP()->query('bind', [$ldap_user_dn, $passwd])) return false;
 
         $_SESSION['uid'] = $uid;
+
         return true;
+    }
+
+    private function getUserIP()
+    {
+        return '1.1.1.1';
     }
 
     private function convertGroupToTable($group)

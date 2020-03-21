@@ -1,16 +1,17 @@
 <?php
 
 require_once('../app/core/Controller.php');
+require_once('../app/interfaces/Authentication.php');
 
-class ChangePassword extends Controller
+class ChangePassword extends Controller implements Authentication
 {
     private $model;
     private $err_msg;
     public function index() // TODO: don't transfer password over URL
     {
-        /*if (!$_SESSION['uid']) {
-            return header("Location: /public/login");
-        }*/
+        if (!$this->authenticate()) {
+            return header("Location: /public/logout");
+        }
         // Define Model to be used
         $this->model = $this->model('ChangePasswordModel');
 
@@ -31,6 +32,21 @@ class ChangePassword extends Controller
                 echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
             }
         }
+    }
+
+    public function authenticate()
+    {
+        // Require Session variables
+        if (!$_SESSION['uid'] || !$_SESSION['token']) {
+            return header("Location: /public/logout");
+        }
+        $auth_model = $this->model('AuthenticationModel');
+        $table = $auth_model->getDB()->query('convertGroupToTable', [$auth_model->getLDAP()->query('getGroupOfUid', [$_SESSION['uid']])]);
+        $db_token = $auth_model->getDB()->query('getToken', [$_SESSION['uid'], $table]);
+        if ($_SESSION['token'] != $db_token) {
+            return false;
+        }
+        return true;
     }
 
     protected function attemptPasswordChange($uid, $prev_password, $new_password)
@@ -78,32 +94,10 @@ class ChangePassword extends Controller
 
         // Edit Last Password Change column in Database
         $group = $this->model->getLDAP()->query('getGroupOfUser', [$uid]);
-        $table = $this->convertGroupToTable($group);
+        $table = $this->model->getDB()->convertGroupToTable($group);
         $this->model->getDB()->query('updateLastPasswordChange', [$uid, $table]);
 
         return true;
-    }
-
-    private function convertGroupToTable($group)
-    {
-        switch ($group) {
-            case 'patienten':
-                return 'Patiënt';
-            case 'dokters':
-                return 'Dokter';
-            case 'dietisten':
-                return 'Diëtist';
-            case 'dokters':
-                return 'Dokter';
-            case 'psychologen':
-                return 'Psycholoog';
-            case 'fysiotherapeuten':
-                return 'Fysiotherapeut';
-            case 'administrators':
-                return 'Admin';
-            default:
-                return '';
-        }
     }
 
     private function validatePassword($new_password, $new_password_validation)

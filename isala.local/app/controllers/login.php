@@ -186,20 +186,11 @@ class Login extends Controller
         return true;
     }
 
-    /*private function getUserIP()
+    private function getUserIP()
     {
-        if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            if (strpos($_SERVER['HTTP_X_FORWARDED_FOR'], ',') > 0) {
-                $addr = explode(",", $_SERVER['HTTP_X_FORWARDED_FOR']);
-                return trim($addr[0]);
-            } else {
-                return $_SERVER['HTTP_X_FORWARDED_FOR'];
-            }
-        } else {
-            return $_SERVER['REMOTE_ADDR'];
-        }
-    }*/
-    private function getUserIP(){
+        return filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP);
+    }
+    /*private function getUserIP(){
         foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key){
             if (array_key_exists($key, $_SERVER) === true){
                 foreach (explode(',', $_SERVER[$key]) as $ip){
@@ -211,5 +202,5 @@ class Login extends Controller
                 }
             }
         }
-    }
+    }*/
 }

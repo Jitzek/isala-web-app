@@ -22,7 +22,7 @@ class Login extends Controller
                     // Generate authentication token
                     $token = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 12)), 0, 12);
                     $_SESSION['auth_token'] = $token;
-                    
+
                     $table = $this->model->getDB()->query('convertGroupToTable', [$this->model->getLDAP()->query('getGroupOfUid', [$uid])]);
 
                     // Generate 2FA Code
@@ -46,7 +46,7 @@ class Login extends Controller
         if (!$_SESSION['auth_token'] || $_SESSION['auth_token'] != $auth_token) {
             header("Location: /public/home");
         }
-        
+
         // Define Model to be used
         $this->model = $this->model('LoginModel');
 
@@ -77,7 +77,7 @@ class Login extends Controller
                     if (!$this->err_msg) {
                         echo "<p style=\"color: #FC240F\">Something went wrong</p>";
                     } else {
-                        echo "<p style=\"color: #FC240F\">". $this->err_msg . "</p>";
+                        echo "<p style=\"color: #FC240F\">" . $this->err_msg . "</p>";
                     }
                 }
             } else {
@@ -111,7 +111,7 @@ class Login extends Controller
         // Check if ip is blocked
         $blocked_ip_arr = $this->model->getDB()->query('blockedIPArray', [$uid]);
         if (count($blocked_ip_arr) > 0) {
-            foreach($blocked_ip_arr as $blocked_ip) {
+            foreach ($blocked_ip_arr as $blocked_ip) {
                 // If ip is locked
                 if ($blocked_ip == $this->getUserIP()) {
                     // Check if block has expired
@@ -159,7 +159,7 @@ class Login extends Controller
         // Check if ip is blocked
         $blocked_ip_arr = $this->model->getDB()->query('blockedIPArray', [$uid]);
         if (count($blocked_ip_arr) > 0) {
-            foreach($blocked_ip_arr as $blocked_ip) {
+            foreach ($blocked_ip_arr as $blocked_ip) {
                 // If ip is locked
                 if ($blocked_ip == $this->getUserIP()) {
                     // Check if block has expired, automatically removes entry when expired
@@ -186,17 +186,30 @@ class Login extends Controller
         return true;
     }
 
-    private function getUserIP() {
+    /*private function getUserIP()
+    {
         if (array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            if (strpos($_SERVER['HTTP_X_FORWARDED_FOR'], ',')>0) {
-                $addr = explode(",",$_SERVER['HTTP_X_FORWARDED_FOR']);
+            if (strpos($_SERVER['HTTP_X_FORWARDED_FOR'], ',') > 0) {
+                $addr = explode(",", $_SERVER['HTTP_X_FORWARDED_FOR']);
                 return trim($addr[0]);
             } else {
                 return $_SERVER['HTTP_X_FORWARDED_FOR'];
             }
-        }
-        else {
+        } else {
             return $_SERVER['REMOTE_ADDR'];
+        }
+    }*/
+    private function getUserIP(){
+        foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key){
+            if (array_key_exists($key, $_SERVER) === true){
+                foreach (explode(',', $_SERVER[$key]) as $ip){
+                    $ip = trim($ip); // just to be safe
+    
+                    if (filter_var($ip, FILTER_VALIDATE_IP) !== false){
+                        return $ip;
+                    }
+                }
+            }
         }
     }
 }

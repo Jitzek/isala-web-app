@@ -6,6 +6,7 @@ class Login extends Controller
 {
     private $model;
     private $err_msg = '';
+
     public function index()
     {
         // Define Model to be used
@@ -30,6 +31,7 @@ class Login extends Controller
 
                     // Redirect user to two factor authentication
                     header("Location: /public/login/twofactor/" . $token);
+                    die();
                 } else {
                     if ($this->err_msg == '') echo "<p style=\"color: #FC240F\">UserID or Password was incorrect</p>";
                     else echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
@@ -59,20 +61,16 @@ class Login extends Controller
                 // Check if user is authorized to be here
                 if (!$_SESSION['auth_token'] || $_SESSION['auth_token'] != $auth_token) {
                     header("Location: /public/home");
+                    die();
                 }
 
                 if ($this->attemptAuthenticate($_SESSION['uid'], $_POST['2fa_code'])) {
                     // Remove authorization token
                     unset($_SESSION['auth_token']);
 
-                    // Create session and database token
-                    $token = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 12)), 0, 12);
-                    $_SESSION['token'] = $token;
-                    $table = $this->model->getDB()->query('convertGroupToTable', [$this->model->getLDAP()->query('getGroupOfUid', [$_SESSION['uid']])]);
-                    $this->model->getDB()->query('setToken', [$_SESSION['uid'], $table, $token]);
-
                     // Finish logging in
                     header("Location: /public/home");
+                    die();
                 } else {
                     if (!$this->err_msg) {
                         echo "<p style=\"color: #FC240F\">Something went wrong</p>";
@@ -108,11 +106,11 @@ class Login extends Controller
         // Get User's DN
         $ldap_user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
 
-        // Check if ip is blocked
+        // Get Blocked IPs
         $blocked_ip_arr = $this->model->getDB()->query('blockedIPArray', [$uid]);
         if (count($blocked_ip_arr) > 0) {
             foreach ($blocked_ip_arr as $blocked_ip) {
-                // If ip is locked
+                // If IP is blocked
                 if ($blocked_ip == $this->getUserIP()) {
                     // Check if block has expired
                     if (!$this->model->getDB()->query('blockExpired', [$uid, $blocked_ip])) {
@@ -156,13 +154,13 @@ class Login extends Controller
             && !$this->model->getLDAP()->query('uidExists', [$uid, "account"])
         ) return false;
 
-        // Check if ip is blocked
+        // Get Blocked IPs
         $blocked_ip_arr = $this->model->getDB()->query('blockedIPArray', [$uid]);
         if (count($blocked_ip_arr) > 0) {
             foreach ($blocked_ip_arr as $blocked_ip) {
-                // If ip is locked
+                // If IP is blocked
                 if ($blocked_ip == $this->getUserIP()) {
-                    // Check if block has expired, automatically removes entry when expired
+                    // Check if block has expired
                     if (!$this->model->getDB()->query('blockExpired', [$uid, $blocked_ip])) {
                         $this->err_msg = 'Account geblokkeerd voor het overschrijden van het aantal inlogpogingen, probeer het later weer opnieuw';
                         return false;
@@ -190,11 +188,14 @@ class Login extends Controller
     {
         return filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP);
     }
+
+    // Below function is insecure due to the possibility of contacting untrusted proxies
+    // Only use when trusted proxies have been implemented
     /*private function getUserIP(){
         foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR') as $key){
             if (array_key_exists($key, $_SERVER) === true){
                 foreach (explode(',', $_SERVER[$key]) as $ip){
-                    $ip = trim($ip); // just to be safe
+                    $ip = trim($ip);
     
                     if (filter_var($ip, FILTER_VALIDATE_IP) !== false){
                         return $ip;

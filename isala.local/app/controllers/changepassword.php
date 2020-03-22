@@ -11,6 +11,7 @@ class ChangePassword extends Controller implements Authentication
     {
         if (!$this->authenticate()) {
             return header("Location: /public/logout");
+            die();
         }
         // Define Model to be used
         $this->model = $this->model('ChangePasswordModel');
@@ -38,12 +39,6 @@ class ChangePassword extends Controller implements Authentication
     {
         // Require Session variables
         if (!$_SESSION['uid'] || !$_SESSION['token']) {
-            return header("Location: /public/logout");
-        }
-        $auth_model = $this->model('AuthenticationModel');
-        $table = $auth_model->getDB()->query('convertGroupToTable', [$auth_model->getLDAP()->query('getGroupOfUid', [$_SESSION['uid']])]);
-        $db_token = $auth_model->getDB()->query('getToken', [$_SESSION['uid'], $table]);
-        if ($_SESSION['token'] != $db_token) {
             return false;
         }
         return true;

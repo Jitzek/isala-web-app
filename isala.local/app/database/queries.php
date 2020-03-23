@@ -181,4 +181,26 @@ class DBQueries
                 return '';
         }
     }
+
+    public function setCookie($uid, $table, $state)
+    {
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("UPDATE {$table} SET Accepted_Cookie = ? WHERE `UID` = ?");
+        $query->bind_param("ss", $state, $uid);
+        $query->execute();
+        $query->close();
+    }
+
+    public function getCookie($uid, $table)
+    {
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT Accepted_Cookie FROM {$table} WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
 }
+ 

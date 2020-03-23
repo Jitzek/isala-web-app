@@ -16,7 +16,6 @@ class Home extends Controller implements Authentication
         // Define Model to be used
         $this->model = $this->model('HomeModel');
         $user = $this->model('UserModel');
-        //$user->getCookie();
 
         // Parse data to view (beware of order)
         $this->view('includes/head');
@@ -33,14 +32,5 @@ class Home extends Controller implements Authentication
             return false;
         }
         return true;
-    }
-
-    public function cookie()
-    {
-        //Set accepted cookie to true
-        $user = $user = $this->model('UserModel');
-        $user->setCookie(1);
-
-        header("Location: /public/home");
     }
 }

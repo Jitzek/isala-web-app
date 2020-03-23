@@ -19,7 +19,7 @@
             aangezien deze op uw computer opgeslagen zijn. Raadpleeg 
             hiervoor de handleiding van uw browser.    
         </p>
-        <form method="post" action="/public/home/cookie">
+        <form method="post" action="/public/acceptcookie">
             <button type="submit" name="cookie" value="cookie" class="cookie-knopke">Ik ga akkoord!</button>
         </form>
     </div>';

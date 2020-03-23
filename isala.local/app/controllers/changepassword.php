@@ -38,7 +38,7 @@ class ChangePassword extends Controller implements Authentication
     public function authenticate()
     {
         // Require Session variables
-        if (!$_SESSION['uid']) {
+        if (!$_SESSION['uid'] || !$_SESSION['token']) {
             return false;
         }
         return true;

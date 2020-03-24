@@ -102,11 +102,23 @@ class DBQueries
         return true;
     }
 
+    public function isUpdateLastPasswordChangeEmpty($uid) {
+        $query = $this->conn->prepare("SELECT Last_Password_Change FROM Patiënt WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $result = $query->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $results[] = $row['Last_Password_Change'];
+        }
+        $query->close();
+        return $results[0];
+    }
+
     public function updateLastPasswordChange($uid, $table)
     {
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
-        $newdate = date("d/m/Y");
+        $newdate = date("Y-m-d");
         $query = $this->conn->prepare("UPDATE {$table} SET Last_Password_Change = ? WHERE `UID` = ?");
         $query->bind_param("ss", $newdate, $uid);
         $query->execute();

@@ -7,7 +7,7 @@
     <title>
         <?= htmlentities($data['title']) ?>
     </title>
-    <link rel="stylesheet" href="../../public/css/home.css">
+    <link rel="stylesheet" href="../../public/css/createuser.css">
 </head>
 <body>
 <div id="accountinput">

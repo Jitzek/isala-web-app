@@ -1,43 +1,52 @@
 <?php
 
-require_once('../app/ldap/connection.php');
 require_once('../app/database/connection.php');
+require_once('../app/ldap/connection.php');
 
+/**
+ * Model containing minimal user info
+*/
 class UserModel
 {
     private $uid;
-    private $db;
-    private $ldap;
+    private $group;
+    private $cn;
+    private $sn;
+    protected $db;
+    protected $ldap;
 
-    public function __construct()
+    public function __construct($uid)
     {
-        $this->uid = $_SESSION['uid'];
+        $this->uid = $uid;
         $this->db = new DBConnection();
         $this->ldap = new LDAPConnection();
+        $this->group = $this->ldap->query('getGroupOfUid', [$this->uid]);
+        $this->cn = $this->ldap->query('getFirstNameByUid', [$this->uid]);
+        $this->sn = $this->ldap->query('getLastNameByUid', [$this->uid]);
     }
 
-    public function getName()
+    public function getUid()
     {
-        //SQL Query
-        return $_SESSION['uid']; // placeholder
+        return $this->uid;
+    }
+
+    public function getFirstName()
+    {
+        return $this->cn;
+    }
+
+    public function getLastName()
+    {
+        return $this->sn;
+    }
+
+    public function getFullName()
+    {
+        return $this->cn . ' ' . $this->sn;
     }
 
     public function getGroup()
     {
-        return $this->ldap->query('getGroupOfUid', [$this->uid]);
-    }
-
-    public function setCookie($state)
-    {
-        $group = $this->ldap->query('getGroupOfUid', [$this->uid]);
-        $table = $this->db->query('convertGroupToTable', [$group]);
-        $this->db->query('setCookie', [$this->uid, $table, $state]);
-    }
-
-    public function getCookie()
-    {
-        $group = $this->ldap->query('getGroupOfUid', [$this->uid]);
-        $table = $this->db->query('convertGroupToTable', [$group]);
-        return $this->db->query('getCookie', [$this->uid, $table]);
+        return $this->group;
     }
 }

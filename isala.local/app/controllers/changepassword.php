@@ -82,7 +82,7 @@ class ChangePassword extends Controller implements Authentication
         if (!$this->model->getLDAP()->query('bind', [$user_dn, $prev_password])) {
             $this->err_msg = 'Incorrect Password';
             return false;
-        } 
+        }
 
         // Change password
         if (!$this->model->getLDAP()->query('changeUserPassword', [$user_dn, $new_password])) return false;

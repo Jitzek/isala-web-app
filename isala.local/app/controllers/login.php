@@ -68,8 +68,20 @@ class Login extends Controller
                     // Remove authorization token
                     unset($_SESSION['auth_token']);
 
+                    $user_dn = $this->model->getLDAP()->query('getDnByUid', [$_SESSION['uid']]);
+                    $group = $this->model->getLDAP()->query('getGroupOfUser', [$user_dn]);
+                    $table = $this->model->getDB()->query('convertGroupToTable', [$group]);
+
+
                     // Finish logging in
-                    header("Location: /public/home");
+                    if($table == "Gecontracteerd") {
+                        header("Location: /public/home");
+                    } else if($this->model->getDB()->query('isUpdateLastPasswordChangeEmpty', [$_SESSION['uid']]) !== NULL) {
+                        header("Location: /public/home");
+                    } else {
+                        header("Location: /public/changepassword");
+                    }
+
                     die();
                 } else {
                     if (!$this->err_msg) {

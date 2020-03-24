@@ -26,9 +26,10 @@ class create_user extends Controller
 
 
         // Are fields left empty
-        if($_POST['uid']&&$_POST['voornaam']&&$_POST['sn']&&$_POST['passwd']) {
+        if($_POST['uid']&&$_POST['voornaam']&&$_POST['sn']&&$_POST['passwd']&&$_POST['adres']) {
             if ($_POST["create_user"]) {
                 $this->attemptUserCreation($_POST['uid'], $_POST['voornaam'], $_POST['sn'], $_POST['passwd']);
+                $this->attemptUserDatabaseEntry($_POST['uid'],$_POST['adres'],  $user->getName());
             }
         } else {
             if ($this->err_msg == '') {
@@ -59,7 +60,7 @@ class create_user extends Controller
             }
 
             // Get distinguished name to get path
-            $dn = 'cn='.$firstname." ".$lastname.',ou=patienten,dc=isala,dc=local';
+            $dn = 'cn='.$firstname.',ou=patienten,dc=isala,dc=local';
 
             //check if user already exists
             if ($this->model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])){
@@ -73,13 +74,12 @@ class create_user extends Controller
             }
 
             // Get information from form
-            $info["cn"] = $firstname." ".$lastname;
             $info['objectclass'][0] = "inetOrgPerson";
             $info['objectclass'][1] = "organizationalPerson";
-            $info['objectclass'][1] = "person";
-            $info['objectclass'][2] = "top";
+            $info['objectclass'][2] = "person";
+            $info['objectclass'][3] = "top";
+            $info["cn"] = ldap_escape($firstname, '', LDAP_ESCAPE_DN);
             $info["sn"] = ldap_escape($lastname, '', LDAP_ESCAPE_DN);
-            $info["givenName"] = ldap_escape($uid, '', LDAP_ESCAPE_DN);
             $info["uid"] = ldap_escape($uid, '', LDAP_ESCAPE_DN);
 
             // Hash & encrypt the password
@@ -89,6 +89,10 @@ class create_user extends Controller
 
             //Attempt to add this new user
             $r = ldap_add($ds, $dn, $info);
+
+            $entry['member'] = $dn;
+            $dnOfGroup = 'cn=patienten,ou=patienten,dc=isala,dc=local';
+            $r = ldap_mod_add($ds, $dnOfGroup, $entry);
 
             //Check if user successfully added
             if ($r)
@@ -123,5 +127,33 @@ class create_user extends Controller
 
             return false;
         }
+        return true;
+    }
+
+    protected function attemptUserDatabaseEntry($uid, $adres, $dokter) {
+        //Check if database connection can be established
+        if (!$this->model->getDB()->getConnection()) {
+            if ($this->err_msg == '') {
+                echo "<div id=\"accountinput\" >";
+                echo "<p style=\"color: #FC240F\">Kan geen verbinding maken met de database.</p>";
+                echo "</div>";
+            } else echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
+
+            return false;
+        }
+
+        //check if user already exists
+        if ($this->model->getDB()->query('doesUIDAlreadyExist', [$uid]) === NULL){
+            if ($this->err_msg == '') {
+                echo "<div id=\"accountinput\" >";
+                echo "<p style=\"color: #FC240F\">Deze gebruiker bestaat al.</p>";
+                echo "</div>";
+            } else echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
+
+            return false;
+        }
+
+
+        $this->model->getDB()->query('createUser', [$uid, $adres, $dokter]);
     }
 }

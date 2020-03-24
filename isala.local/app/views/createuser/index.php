@@ -17,6 +17,8 @@
     <input type="text" name="voornaam" />
     <p>Achternaam:</p>
     <input type="text" name="sn" />
+    <p>Adres:</p>
+    <input type="text" name="adres" />
     <p>BSN:</p>
     <input type="text" name="uid" />
     <p>Wachtwoord:</p>

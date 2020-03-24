@@ -50,3 +50,14 @@
         grid-template-columns: auto auto;
     }
 }
+
+#accountinput{
+    display: grid;
+    justify-content: center;
+    padding-top: 40px;
+    z-index: 1 !important;
+}
+
+#accountinput button {
+    margin-top: 40px;
+}

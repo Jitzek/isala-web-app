@@ -172,6 +172,24 @@ class DBQueries
         return $this->result;
     }
 
+    public function createUser($uid, $adres, $dokter) {
+        $query = $this->conn->prepare("INSERT INTO Patiënt (`UID`, Adres, Dokter, Accepted_Cookie) VALUES (? ,?, ?,false)");
+        $query->bind_param("sss", $uid, $adres, $dokter);
+        $query->execute();
+        $query->close();
+        return true;
+    }
+
+    public function doesUIDAlreadyExist($uid) {
+        $query = $this->conn->prepare("SELECT UID FROM Patiënt WHERE UID = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+
     public function convertGroupToTable($group)
     {
         switch ($group) {

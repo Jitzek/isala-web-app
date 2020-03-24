@@ -61,3 +61,31 @@
 #accountinput button {
     margin-top: 40px;
 }
+
+.cookie-container p {
+    margin: 24px 0;
+    line-height: 2;
+}
+
+.cookie-container {
+    color: #f5f6fa;
+    background: #50535f;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0 32px;
+    box-shadow: 0 -2px 16px rgba(50, 50, 50, 40);
+    z-index: 2;
+    transition: 300ms;
+}
+
+.cookie-knopke {
+    color: #f5f6fa;
+    background: #34a330;
+    padding: 12px 48px;
+    font-size: 18;
+    margin-bottom: 16px;
+    border: 0; 
+    border-radius: 8px;
+}

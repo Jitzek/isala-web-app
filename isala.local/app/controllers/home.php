@@ -21,6 +21,7 @@ class Home extends Controller implements Authentication
         $this->view('includes/head');
         $this->view('includes/navbar', ['name' => $user->getName()]);
         $this->view('home/index', ['title' => $this->model->getTitle(), 'name' => $user->getName(), 'group' => $user->getGroup()]);
+        $this->view('includes/cookie', ['accepted_cookie' => $user->getCookie()]);
         $this->view('includes/footer');
     }
 

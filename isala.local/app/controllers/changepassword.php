@@ -88,8 +88,8 @@ class ChangePassword extends Controller implements Authentication
         if (!$this->model->getLDAP()->query('changeUserPassword', [$user_dn, $new_password])) return false;
 
         // Edit Last Password Change column in Database
-        $group = $this->model->getLDAP()->query('getGroupOfUser', [$uid]);
-        $table = $this->model->getDB()->convertGroupToTable($group);
+        $group = $this->model->getLDAP()->query('getGroupOfUser', [$user_dn]);
+        $table = $this->model->getDB()->query('convertGroupToTable', [$group]);
         $this->model->getDB()->query('updateLastPasswordChange', [$uid, $table]);
 
         return true;

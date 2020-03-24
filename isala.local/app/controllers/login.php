@@ -29,10 +29,8 @@ class Login extends Controller
                     // Generate 2FA Code
                     $this->model->getDB()->query('set2FA', [$uid, $table]);
 
-                    header("Location: /public/create_user");
-
                     // Redirect user to two factor authentication
-                    //header("Location: /public/login/twofactor/" . $token);
+                    header("Location: /public/login/twofactor/" . $token);
                     die();
                 } else {
                     if ($this->err_msg == '') echo "<p style=\"color: #FC240F\">UserID or Password was incorrect</p>";

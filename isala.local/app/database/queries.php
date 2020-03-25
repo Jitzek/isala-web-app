@@ -190,28 +190,6 @@ class DBQueries
         return $this->result;
     }
 
-    public function convertGroupToTable($group)
-    {
-        switch ($group) {
-            case 'patienten':
-                return 'Patiënt';
-            case 'dokters':
-                return 'Gecontracteerd';
-            case 'dietisten':
-                return 'Gecontracteerd';
-            case 'dokters':
-                return 'Gecontracteerd';
-            case 'psychologen':
-                return 'Gecontracteerd';
-            case 'fysiotherapeuten':
-                return 'Gecontracteerd';
-            case 'administrators':
-                return 'Admin';
-            default:
-                return '';
-        }
-    }
-
     public function setCookie($uid, $table, $state)
     {
         $table = $this->conn->real_escape_string($table);
@@ -231,6 +209,98 @@ class DBQueries
         $query->fetch();
         $query->close();
         return $this->result;
+    }
+
+    public function getAdres($uid, $table)
+    {
+        // Make sure $table can not be edited by user
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT Adres FROM {$table} WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+
+    public function getGecontracteerd($uid, $table)
+    {
+        // Make sure $table can not be edited by user
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT {$table} FROM Patiënt WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+
+    public function getMedicalData($uid)
+    {
+        $query = $this->conn->prepare("SELECT Medische_Gegevens FROM Patiënt WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+
+    public function getPatientsOfGecontracteerd($uid, $role)
+    {
+        // Make sure $role can not be edited by user
+        $role = $this->conn->real_escape_string($role);
+        $query = $this->conn->prepare("SELECT `UID` FROM Patiënt WHERE {$role} = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $result = $query->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $results[] = $row['UID'];
+        }
+        $query->close();
+        return $results;
+    }
+
+    public function convertGroupToTable($group)
+    {
+        switch ($group) {
+            case 'patienten':
+                return 'Patiënt';
+            case 'dokters':
+                return 'Gecontracteerd';
+            case 'dietisten':
+                return 'Gecontracteerd';
+            case 'psychologen':
+                return 'Gecontracteerd';
+            case 'fysiotherapeuten':
+                return 'Gecontracteerd';
+            case 'administrators':
+                return 'Admin';
+            default:
+                return '';
+        }
+    }
+
+    public function convertGroupToColumn($group)
+    {
+        switch ($group) {
+            case 'patienten':
+                return 'Patiënt';
+            case 'dokters':
+                return 'Dokter';
+            case 'dietisten':
+                return 'Diëtist';
+            case 'psychologen':
+                return 'Psycholoog';
+            case 'fysiotherapeuten':
+                return 'Fysiotherapeut';
+            case 'administrators':
+                return 'Admin';
+            default:
+                return '';
+        }
     }
 }
  

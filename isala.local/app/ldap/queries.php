@@ -100,6 +100,22 @@ class LDAPQueries
         return true;
     }
 
+    public function getFirstNameByUid($uid)
+    {
+        $filter = vsprintf("(uid=%s)", $this->arrSanitizeFilter([$uid]));
+        $entries = ldap_search($this->conn, $this->baseDN, $filter);
+        $results = ldap_get_entries($this->conn, $entries);
+        return $results[0]["cn"][0];
+    }
+
+    public function getLastNameByUid($uid)
+    {
+        $filter = vsprintf("(uid=%s)", $this->arrSanitizeFilter([$uid]));
+        $entries = ldap_search($this->conn, $this->baseDN, $filter);
+        $results = ldap_get_entries($this->conn, $entries);
+        return $results[0]["sn"][0];
+    }
+
     /**
      * Sanitizes elements of array to be used in a LDAP Filter
      */

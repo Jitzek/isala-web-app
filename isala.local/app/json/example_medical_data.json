@@ -1,0 +1,53 @@
+{
+    "Piet Patiënt":{
+        "Algemeen": {
+            "BSN": "475197645",
+            "Voornaam": "Piet",
+            "Achternaam": "Patiënt",
+            "Leeftijd": 23,
+            "Adres": "Pietenlaan 12, Ternaard",
+            "Geslacht": "Man",
+            "Telefoonnummer": "063123456",
+            "Dokter": "J.Janssen"
+        },
+        "Dieet": {
+            "Diëtist": "D.Dirkssen",
+            "BMI": 26.3,
+            "Gewicht": "87kg",
+            "Lengte": "182cm",
+            "Vetpercentage": "19%"
+        },
+        "Fysiotherapie": {
+            "Fysiotherapeut": "F.Falentein"
+        },
+        "Psychologie": {
+            "Psycholoog": "P.Plant"
+        }
+    },
+    
+    "Klaas Baas":{
+        "Algemeen": {
+            "BSN": "586384185",
+            "Voornaam": "Klaas",
+            "Achternaam": "Baas",
+            "Leeftijd": 42,
+            "Adres": "KlaasBaan 33, Rinsumageest",
+            "Geslacht": "Man",
+            "Telefoonnummer": "063123456",
+            "Dokter": "H.Ham"
+        },
+        "Dieet": {
+            "Diëtist": "D.Dirkssen",
+            "BMI": 26.6,
+            "Gewicht": "92kg",
+            "Lengte": "186cm",
+            "Vetpercentage": "20%"
+        },
+        "Fysiotherapie": {
+            "Fysiotherapeut": "F.Falentein"
+        },
+        "Psychologie": {
+            "Psycholoog": "P.Plant"
+        }
+    }
+}

@@ -1,0 +1,16 @@
+.main {
+  /* Make room for sidebar */
+  margin-left: 250px;
+}
+
+.category {
+  list-style-type: none !important;
+}
+
+.img-usr {
+  height: 100px;
+  width: auto;
+  max-width: 100px;
+  border: solid #50535f 1px;
+  padding: 10px;
+}

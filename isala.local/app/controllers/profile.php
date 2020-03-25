@@ -14,31 +14,36 @@ class Profile extends Controller implements Authentication, Authorization
     private $target;
     public function index($target = '')
     {
-        // If no target given default to current user
+        // If no target is given, default to current user
         if (!$target) $target = $_SESSION['uid'];
-
         if (!$this->authenticate()) {
             return header("Location: /public/logout");
             die();
         }
 
+        // Define model to be used for this page
         $this->model = $this->model('ProfileModel');
 
         // Check if user is authorized to view this page
         if ($target != $_SESSION['uid']) {
             $args['target'] = $target;
             if (!$this->authorize($args)) {
-                return header("Location: /public/home");
+                return header("Location: /public/profile");
                 die();
             }
         }
+
         // Define Target Model 
         if ($this->model->getLDAP()->query('getGroupOfUid', [$target]) == 'patienten') $this->target = new PatiëntModel($target);
         else $this->target = new GecontracteerdModel($target);
 
         // Define User Model
         $this->user = new UserModel($_SESSION['uid']);
+
+        // Define categories allowed for each role 
         $allowed_categories = $this->getAllowedCategories($this->target->getUid(), $this->user->getGroup());
+
+        // Only define medical_data if target is a Patiënt
         if ($this->target->getGroup() == 'patienten') $medical_data = $this->target->getMedicalData();
         else $medical_data = [];
 
@@ -67,8 +72,12 @@ class Profile extends Controller implements Authentication, Authorization
 
     public function authorize($args)
     {
-        // Check if user has access to target
         $group = $this->model->getLDAP()->query('getGroupOfUid', [$_SESSION['uid']]);
+
+        // Check if user is not a Patiënt
+        if ($group == 'patienten') return false;
+
+        // Check if user has access to target
         $patienten = $this->model->getDB()->query('getPatientsOfGecontracteerd', [$_SESSION['uid'], $this->model->getDB()->query('convertGroupToColumn', [$group])]);
         if (!in_array($args['target'], $patienten)) {
             return false;
@@ -78,6 +87,7 @@ class Profile extends Controller implements Authentication, Authorization
 
     private function getAllowedCategories($target, $group)
     {
+        // If user is the target, user has permission to view everything
         if ($_SESSION['uid'] == $target) {
             return ['Algemeen', 'Dieet', 'Fysiotherapie', 'Psychologie'];
         }

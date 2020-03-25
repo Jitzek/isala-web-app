@@ -38,7 +38,7 @@ class PatiëntModel extends UserModel
     /**
      * Gets Gecontracteerd by it's variable name
      * 'dokter', 'diëtist', 'fysiotherapeut', 'psycholoog'
-     */
+    */
     public function getGecontracteerd($type)
     {
         if (!in_array($type, ['dokter', 'diëtist', 'fysiotherapeut', 'psycholoog'])) return '';

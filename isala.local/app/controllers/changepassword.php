@@ -25,10 +25,12 @@ class ChangePassword extends Controller implements Authentication
                 return;
             }
             if ($this->validatePassword($_POST['new_password'], $_POST['new_password2'])) {
-                if (!$this->attemptPasswordChange($_SESSION['uid'], $_POST['prev_password'], $_POST['new_password'])) {
-                    if (strlen($this->err_msg) < 1) echo "<p style=\"color: #FC240F\">Something went wrong</p>";
-                    else echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
+                if ($this->attemptPasswordChange($_SESSION['uid'], $_POST['prev_password'], $_POST['new_password'])) {
+                    header("Location: /public/home");
+                    exit();
                 }
+                if (strlen($this->err_msg) < 1) echo "<p style=\"color: #FC240F\">Something went wrong</p>";
+                else echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
             } else {
                 echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
             }
@@ -129,6 +131,6 @@ class ChangePassword extends Controller implements Authentication
 
     private function hasSpecialCharacter($string)
     {
-        return (bool) preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $string);
+        return (bool) preg_match('/[\'^£$%&*()}{@#~?><>,!|=_+¬-]/', $string);
     }
 }

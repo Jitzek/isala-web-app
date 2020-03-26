@@ -3,31 +3,46 @@
 
 <!DOCTYPE html>
 <html>
-
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <head>
     <title>
         <?= $data['title'] ?>
     </title>
+    <link rel="stylesheet" href="/public/css/login.css">
+
 </head>
 
 <body>
-    <h1>Login Page</h1>
+<div id="container">
+    <div id="image">
+    </div>
+    <div id="mobile">
     <?php if ($data['2fa'] === true) : ?>
+
         <form method="post" action="">
-            <input type="text" name="2fa_code" />
+        <img src="/public/imgs/isala-logo.png">
+            <input type="text" name="2fa_code" placeholder="2FA"/>
+            <br>
             <button type="submit" name="2fa_submit" value="2fa_submit">
                 2FA
             </button>
         </form>
     <?php else : ?>
+
         <form method="post" action="">
-            <input type="text" name="uid" />
-            <input type="password" name="passwd" />
+        <img src="/public/imgs/isala-logo.png">
+            <input type="text" name="uid" placeholder="UID"/>
+            <br>
+            <input type="password" name="passwd" placeholder="Password" />
+            <br>
             <button type="submit" name="login" value="login">
                 Log In
             </button>
         </form>
+    </div>
+</div>
     <?php endif; ?>
+    <script src="/public/js/login.js" type="text/javascript"> </script>
 </body>
 
 </html>

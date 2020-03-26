@@ -13,6 +13,7 @@ class Login extends Controller
         $this->model = $this->model('LoginModel');
 
         // Parse data to view
+		$this->view('includes/head');
         $this->view('login/index', ['title' => $this->model->getTitle(), '2fa' => false]);
 
         // Handle Post Request (login)

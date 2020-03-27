@@ -1,0 +1,56 @@
+#image{
+    background-image: url(/imgs/isalarotzooi.jpg);
+    width: 65vw;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0px;
+    background-size: 100% 100%;
+}
+#mobile{
+    background-color: #50525f;
+    width: 35vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    right: 0;
+}
+#container{
+    display: flex;
+    flex-direction: row;
+}
+input{
+    background: none;
+    border: none;
+    border-bottom: 2px solid white;
+    color: white;
+    margin-bottom: 40px;
+    width: 20vw;
+    min-width: 20vw;
+    margin-top: 40px;
+}
+button{
+    background-color: #50525f;
+    border: 3px solid white;
+    color: white;
+    padding: 10px 30px;
+    cursor: pointer;
+}
+img{
+    display: block !important;
+}
+body{
+    margin: 0px;
+    padding: 0px;
+}
+@media (max-width: 800px){
+    #mobile{
+        width: 100vw;
+    }
+    input{
+        width: 60vw;
+    }
+}

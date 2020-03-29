@@ -31,6 +31,24 @@ class ChangePasswordTest extends TestCase
         $this->assertFalse($this->attemptPasswordChange($uid, $prev_password, $new_password));
     }
 
+    /** @test */
+    public function attemptPasswordChange_new_password_is_the_same_as_old_password()
+    {
+        $uid = '111111111';
+        $prev_password = 'password';
+        $new_password = 'password';
+        $this->assertFalse($this->attemptPasswordChange($uid, $prev_password, $new_password));
+    }
+
+    /** @test */
+    public function attemptPasswordChange_wrong_old_password()
+    {
+        $uid = '111111111';
+        $prev_password = 'password1';
+        $new_password = 'password2';
+        $this->assertFalse($this->attemptPasswordChange($uid, $prev_password, $new_password));
+    }
+
     private function attemptPasswordChange($uid, $prev_password, $new_password)
     {
         /**
@@ -134,21 +152,24 @@ class ChangePasswordTest extends TestCase
         /* ----- Done configuring Mocks ----- */
 
         $user_dn = $model->getLDAP()->query('getDnByUid', [$uid]);
+
         // Check if prev_password is correct
         if (!$model->getLDAP()->query('bind', [$user_dn, $prev_password])) {
-            // Display error message
+            $err_msg = 'Password is incorrect';
             return false;
         }
         // Check if passwords are the same 
         if ($prev_password == $new_password) {
-            // Display error message
+            $err_msg = 'New Password can\'t be the same as the old Password';
             return false;
         }
 
         if (!$model->getLDAP()->getConnection()) {
+            $err_msg = 'Connection Failed';
             return false;
         }
         if (!$model->getDB()->getConnection()) {
+            $err_msg = 'Connection Failed';
             return false;
         }
 
@@ -165,7 +186,7 @@ class ChangePasswordTest extends TestCase
 
         // Check if user is valid and/or given password is correct
         if (!$model->getLDAP()->query('bind', [$user_dn, $prev_password])) {
-            // Display error message
+            $err_msg = 'Incorrect Password';
             return false;
         }
 
@@ -173,8 +194,8 @@ class ChangePasswordTest extends TestCase
         if (!$model->getLDAP()->query('changeUserPassword', [$user_dn, $new_password])) return false;
 
         // Edit Last Password Change column in Database
-        $group = $model->getLDAP()->query('getGroupOfUser', [$uid]);
-        $table = $this->convertGroupToTable($group);
+        $group = $model->getLDAP()->query('getGroupOfUser', [$user_dn]);
+        $table = $model->getDB()->query('convertGroupToTable', [$group]);
         $model->getDB()->query('updateLastPasswordChange', [$uid, $table]);
 
         return true;

@@ -39,19 +39,24 @@ class Profile extends Controller implements Authentication, Authorization
 
         // Define User Model
         $this->user = new UserModel($_SESSION['uid']);
-
+        $algemeen['Naam'] = $this->target->getFullName();
+        $algemeen['Adres'] = $this->target->getAdres();
+        $algemeen['Telefoonnummer'] = $this->target->getTelefoonnummer();
         // Only define medical_data if target is a Patiënt
         // Decide which role can see what medical data
         if ($this->target->getGroup() == 'patienten') {
+            $algemeen['Leeftijd'] = $this->target->getLeeftijd();
+            $algemeen['Geslacht'] = $this->target->getGeslacht();
             switch ($this->user->getGroup()) {
-                case 'dokters':
                 case 'patienten':
-                    $medical_data['Algemeen'] = $this->target->getMeasurements('Algemeen', TRUE);
                     $medical_data['Dieet'] = $this->target->getMeasurements('Dieet', TRUE);
                     $medical_data['Fysiotherapie'] = $this->target->getMeasurements('Fysiotherapie', TRUE);
                     $medical_data['Psychologie'] = $this->target->getMeasurements('Psychologie', TRUE);
                     break;
-                    $medical_data['Algemeen'] = $this->target->getMeasurements('Algemeen', TRUE);
+                case 'dokters':
+                    $medical_data['Dieet'] = $this->target->getMeasurements('Dieet', TRUE);
+                    $medical_data['Fysiotherapie'] = $this->target->getMeasurements('Fysiotherapie', TRUE);
+                    $medical_data['Psychologie'] = $this->target->getMeasurements('Psychologie', TRUE);
                     break;
                 case 'dietisten':
                     $medical_data['Dieet'] = $this->target->getMeasurements('Dieet', TRUE);
@@ -72,7 +77,7 @@ class Profile extends Controller implements Authentication, Authorization
             'title' => $this->model->getTitle(),
             'firstname' => $this->target->getFirstName(),
             'lastname' => $this->target->getLastName(),
-            'adress' => $this->target->getAdress(),
+            'algemeen' => $algemeen,
             'medical_data' => $medical_data
         ]);
         $this->view('includes/footer');

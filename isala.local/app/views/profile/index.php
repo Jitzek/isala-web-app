@@ -26,18 +26,12 @@
                         <div class=" col-md-9 col-lg-9 ">
                             <table class="table table-user-information">
                                 <tbody>
-                                    <tr>
-                                        <td>Voornaam:</td>
-                                        <td><?= $data['firstname'] ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Achternaam:</td>
-                                        <td><?= $data['lastname'] ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Adres:</td>
-                                        <td><?= $data['adress'] ?></td>
-                                    </tr>
+                                    <?php foreach ($data['algemeen'] as $key => $value) : ?>
+                                        <tr>
+                                            <td><?= $key ?>:</td>
+                                            <td><?= $value ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>

@@ -224,6 +224,45 @@ class DBQueries
         return $this->result;
     }
 
+    public function getLeeftijd($uid, $table)
+    {
+        // Make sure $table can not be edited by user
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT Leeftijd FROM {$table} WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+    
+    public function getGeslacht($uid, $table)
+    {
+        // Make sure $table can not be edited by user
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT Geslacht FROM {$table} WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+
+    public function getTelefoonnummer($uid, $table)
+    {
+        // Make sure $table can not be edited by user
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT Telefoonnummer FROM {$table} WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+
     public function getGecontracteerd($uid, $table)
     {
         // Make sure $table can not be edited by user

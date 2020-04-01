@@ -224,6 +224,45 @@ class DBQueries
         return $this->result;
     }
 
+    public function getLeeftijd($uid, $table)
+    {
+        // Make sure $table can not be edited by user
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT Leeftijd FROM {$table} WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+    
+    public function getGeslacht($uid, $table)
+    {
+        // Make sure $table can not be edited by user
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT Geslacht FROM {$table} WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+
+    public function getTelefoonnummer($uid, $table)
+    {
+        // Make sure $table can not be edited by user
+        $table = $this->conn->real_escape_string($table);
+        $query = $this->conn->prepare("SELECT Telefoonnummer FROM {$table} WHERE `UID` = ?");
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+
     public function getGecontracteerd($uid, $table)
     {
         // Make sure $table can not be edited by user
@@ -237,15 +276,23 @@ class DBQueries
         return $this->result;
     }
 
-    public function getMedicalData($uid)
+    public function getMeasurements($uid, $category, $only_most_recent = FALSE)
     {
-        $query = $this->conn->prepare("SELECT Medische_Gegevens FROM Patiënt WHERE `UID` = ?");
-        $query->bind_param("s", $uid);
+        if ($only_most_recent) {
+            $query = $this->conn->prepare("SELECT * FROM Meting WHERE Patiënt = ? AND Categorie = ? AND ID NOT IN 
+                                            (SELECT ID FROM 
+                                                (SELECT * FROM Meting ORDER BY Datum, Tijd DESC) as t2 GROUP BY Onderwerp HAVING COUNT(*) > 1)
+                                            ");
+        }
+        else $query = $this->conn->prepare("SELECT * FROM Meting WHERE Patiënt = ? AND Categorie = ?");
+        $query->bind_param("ss", $uid, $category);
         $query->execute();
-        $query->bind_result($this->result);
-        $query->fetch();
+        $this->results = $query->get_result();
+        while ($row = $this->results->fetch_assoc()) {
+            $result[] = $row;
+        }
         $query->close();
-        return $this->result;
+        return $result;
     }
 
     public function getPatientsOfGecontracteerd($uid, $role)

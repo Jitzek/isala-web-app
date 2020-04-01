@@ -111,6 +111,6 @@ class validatePasswordTest extends TestCase
 
     private function hasSpecialCharacter($string)
     {
-        return (bool) preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $string);
+        return (bool) preg_match('/[\'^£$%&*()}{@#~?><>,!|=_+¬-]/', $string);
     }
 }

@@ -42,13 +42,36 @@ class Profile extends Controller implements Authentication, Authorization
 
         // Define User Model
         $this->user = new UserModel($_SESSION['uid']);
-
-        // Define categories allowed for each role 
-        $allowed_categories = $this->getAllowedCategories($this->target->getUid(), $this->user->getGroup());
-
+        $algemeen['Naam'] = $this->target->getFullName();
+        $algemeen['Adres'] = $this->target->getAdres();
+        $algemeen['Telefoonnummer'] = $this->target->getTelefoonnummer();
         // Only define medical_data if target is a Patiënt
-        if ($this->target->getGroup() == 'patienten') $medical_data = $this->target->getMedicalData();
-        else $medical_data = [];
+        // Decide which role can see what medical data
+        if ($this->target->getGroup() == 'patienten') {
+            $algemeen['Leeftijd'] = $this->target->getLeeftijd();
+            $algemeen['Geslacht'] = $this->target->getGeslacht();
+            switch ($this->user->getGroup()) {
+                case 'patienten':
+                    $medical_data['Dieet'] = $this->target->getMeasurements('Dieet', TRUE);
+                    $medical_data['Fysiotherapie'] = $this->target->getMeasurements('Fysiotherapie', TRUE);
+                    $medical_data['Psychologie'] = $this->target->getMeasurements('Psychologie', TRUE);
+                    break;
+                case 'dokters':
+                    $medical_data['Dieet'] = $this->target->getMeasurements('Dieet', TRUE);
+                    $medical_data['Fysiotherapie'] = $this->target->getMeasurements('Fysiotherapie', TRUE);
+                    $medical_data['Psychologie'] = $this->target->getMeasurements('Psychologie', TRUE);
+                    break;
+                case 'dietisten':
+                    $medical_data['Dieet'] = $this->target->getMeasurements('Dieet', TRUE);
+                    break;
+                case 'fysiotherapeuten':
+                    $medical_data['Fysiotherapie'] = $this->target->getMeasurements('Fysiotherapie', TRUE);
+                    break;
+                case 'psychologen':
+                    $medical_data['Psychologie'] = $this->target->getMeasurements('Psychologie', TRUE);
+                    break;
+            }
+        } else $medical_data = [];
 
         // Parse data to view (beware of order)
         $this->view('includes/head');
@@ -57,10 +80,9 @@ class Profile extends Controller implements Authentication, Authorization
             'title' => $this->model->getTitle(),
             'firstname' => $this->target->getFirstName(),
             'lastname' => $this->target->getLastName(),
-            'adress' => $this->target->getAdress(),
-            'medical_data' => $medical_data,
-            'allowed_categories' => $allowed_categories
-            ]);
+            'algemeen' => $algemeen,
+            'medical_data' => $medical_data
+        ]);
         $this->view('includes/footer');
     }
 
@@ -86,27 +108,5 @@ class Profile extends Controller implements Authentication, Authorization
             return false;
         }
         return true;
-    }
-
-    private function getAllowedCategories($target, $group)
-    {
-        // If user is the target, user has permission to view everything
-        if ($_SESSION['uid'] == $target) {
-            return ['Algemeen', 'Dieet', 'Fysiotherapie', 'Psychologie'];
-        }
-        else {
-            switch ($group) {
-                case 'dokters':
-                    return ['Algemeen', 'Dieet', 'Fysiotherapie', 'Psychologie'];
-                case 'dietisten':
-                    return ['Algemeen', 'Dieet'];
-                case 'fysiotherapeuten':
-                    return ['Algemeen', 'Fysiotherapie'];
-                case 'psychologen':
-                    return ['Algemeen', 'Psychologie'];
-                default:
-                    return [];
-            }
-        }
     }
 }

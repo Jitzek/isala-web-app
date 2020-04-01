@@ -7,7 +7,6 @@ class HomeModel
     public function __construct()
     {
         $this->title = 'Home';
-        $this->db = new DBConnection();
     }
 
     public function getTitle()

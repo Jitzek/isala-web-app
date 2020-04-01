@@ -12,6 +12,7 @@ class DBConnection
 
     private $queries;
 
+
     public function __construct() {
         $this->conn = new mysqli($this->servername, $this->username, $this->password, $this->database);
         $this->queries = new DBQueries($this->getConnection());

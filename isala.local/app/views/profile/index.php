@@ -26,12 +26,18 @@
                         <div class=" col-md-9 col-lg-9 ">
                             <table class="table table-user-information">
                                 <tbody>
-                                    <?php foreach ($data['algemeen'] as $key => $value) : ?>
-                                        <tr>
-                                            <td><?= $key ?>:</td>
-                                            <td><?= $value ?></td>
-                                        </tr>
-                                    <?php endforeach; ?>
+                                    <tr>
+                                        <td>Voornaam:</td>
+                                        <td><?= $data['firstname'] ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Achternaam:</td>
+                                        <td><?= $data['lastname'] ?></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Adres:</td>
+                                        <td><?= $data['adress'] ?></td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -55,21 +61,23 @@
                                 <div class="col-12">
                                     <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
                                         <?php foreach ($data['medical_data'] as $category => $content) : ?>
-                                            <li class="nav-item category">
-                                                <a class="nav-link" id="<?= $category ?>-tab" data-toggle="tab" href="#<?= $category ?>" role="tab" aria-selected="false"><?= $category ?></a>
-                                            </li>
+                                            <?php if (in_array($category, $data['allowed_categories'])) : ?>
+                                                <li class="nav-item category">
+                                                    <a class="nav-link" id="<?= $category ?>-tab" data-toggle="tab" href="#<?= $category ?>" role="tab" aria-selected="false"><?= $category ?></a>
+                                                </li>
+                                            <?php endif; ?>
                                         <?php endforeach; ?>
                                     </ul>
                                     <div class="tab-content ml-1" id="myTabContent">
-                                        <?php foreach ($data['medical_data'] as $category => $row) : ?>
+                                        <?php foreach ($data['medical_data'] as $category => $content) : ?>
                                             <div class="tab-pane fade" id="<?= $category ?>" role="tabpanel" aria-labelledby="<?= $category ?>-tab">
-                                                <?php foreach ($row as $column) : ?>
+                                                <?php foreach ($content as $subject => $value) : ?>
                                                     <div class="row">
                                                         <div class="col-sm-3 col-md-2 col-5">
-                                                            <label style="font-weight:bold;"><?= $column['Onderwerp'] ?></label>
+                                                            <label style="font-weight:bold;"><?= $subject ?></label>
                                                         </div>
                                                         <div class="col-md-8 col-6">
-                                                            <?= $column['Afbeeld_Waarde'] ?>
+                                                            <?= $value ?>
                                                         </div>
                                                     </div>
                                                     <hr />

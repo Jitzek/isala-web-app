@@ -8,10 +8,12 @@ require_once("../app/logging/logger.php");
 class Home extends Controller implements Authentication
 {
     private $model;
+    private $logModel;
+
     public function index()
     {
         if (!$this->authenticate()) {
-            logger::log($_SESSION['uid'], 'User automatically logged out', $this->model('HomeModel'));
+            logger::log($_SESSION['uid'], 'User automatically logged out', $this->logModel);
             return header("Location: /public/logout");
             die();
         }
@@ -20,7 +22,10 @@ class Home extends Controller implements Authentication
         $this->model = $this->model('HomeModel');;
         $user = new UserModel($_SESSION['uid']);
 
-        logger::log($_SESSION['uid'], 'Viewing homepage', $this->model);
+        // Define logging model
+        $this->logModel = $this->model('LoggingModel');
+
+        logger::log($_SESSION['uid'], 'Viewing homepage', $this->logModel);
 
         // Parse data to view (beware of order)
         $this->view('includes/head');

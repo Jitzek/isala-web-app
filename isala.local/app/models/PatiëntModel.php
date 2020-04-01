@@ -7,32 +7,51 @@ require_once('../app/models/UserModel.php');
 */
 class PatiëntModel extends UserModel
 {
-    private $adress;
+    private $adres;
+    private $leeftijd;
+    private $geslacht;
+    private $telefoonnummer;
     private $dokter;
     private $diëtist;
     private $fysiotherapeut;
     private $psycholoog;
-    private $medical_data;
 
     public function __construct($uid)
     {
         parent::__construct($uid);
-        $this->adress = $this->db->query('getAdres', [$this->getUid(), $this->db->query('convertGroupToTable', [$this->getGroup()])]);
+        $this->adres = $this->db->query('getAdres', [$this->getUid(), $this->db->query('convertGroupToTable', [$this->getGroup()])]);
+        $this->leeftijd = $this->db->query('getLeeftijd', [$this->getUid(), $this->db->query('convertGroupToTable', [$this->getGroup()])]);
+        $this->geslacht = $this->db->query('getGeslacht', [$this->getUid(), $this->db->query('convertGroupToTable', [$this->getGroup()])]);
+        $this->telefoonnummer = $this->db->query('getTelefoonnummer', [$this->getUid(), $this->db->query('convertGroupToTable', [$this->getGroup()])]);
         $this->dokter = $this->db->query('getGecontracteerd', [$this->getUid(), 'Dokter']);
         $this->diëtist = $this->db->query('getGecontracteerd', [$this->getUid(), 'Diëtist']);
         $this->fysiotherapeut = $this->db->query('getGecontracteerd', [$this->getUid(), 'Fysiotherapeut']);
         $this->psycholoog = $this->db->query('getGecontracteerd', [$this->getUid(), 'Psycholoog']);
-        $this->medical_data = json_decode($this->db->query('getMedicalData', [$this->getUid()]));
     }
 
-    public function getMedicalData()
+    public function getMeasurements($category, $only_most_recent = FALSE)
     {
-        return $this->medical_data;
+        return $this->db->query('getMeasurements', [$this->getUid(), $category, $only_most_recent]);
     }
 
-    public function getAdress()
+    public function getAdres()
     {
-        return $this->adress;
+        return $this->adres;
+    }
+    
+    public function getLeeftijd()
+    {
+        return $this->leeftijd;
+    }
+    
+    public function getGeslacht()
+    {
+        return $this->geslacht;
+    }
+    
+    public function getTelefoonnummer()
+    {
+        return $this->telefoonnummer;
     }
 
     /**

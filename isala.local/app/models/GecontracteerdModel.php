@@ -7,16 +7,23 @@ require_once('../app/models/UserModel.php');
 */
 class GecontracteerdModel extends UserModel
 {
-    private $adress;
+    private $adres;
+    private $telefoonnummer;
 
     public function __construct($uid)
     {
         parent::__construct($uid);
-        $this->adress = $this->db->query('getAdres', [$this->getUid(), $this->db->query('convertGroupToTable', [$this->getGroup()])]);
+        $this->adres = $this->db->query('getAdres', [$this->getUid(), $this->db->query('convertGroupToTable', [$this->getGroup()])]);
+        $this->telefoonnummer = $this->db->query('getTelefoonnummer', [$this->getUid(), $this->db->query('convertGroupToTable', [$this->getGroup()])]);
     }
 
-    public function getAdress()
+    public function getAdres()
     {
-        return $this->adress;
+        return $this->adres;
+    }
+    
+    public function getTelefoonnummer()
+    {
+        return $this->telefoonnummer;
     }
 }

@@ -103,7 +103,7 @@ class ChangePassword extends Controller implements Authentication
         $table = $this->model->getDB()->query('convertGroupToTable', [$group]);
         $this->model->getDB()->query('updateLastPasswordChange', [$uid, $table]);
 
-        logger::log($_SESSION['uid'], 'Password changed', $this->model);
+        logger::log($_SESSION['uid'], 'Password changed', $this->logModel);
 
         return true;
     }

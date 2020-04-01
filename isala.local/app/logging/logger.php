@@ -7,7 +7,7 @@ class logger
     public $err_msg = '';
 
 
-    public static function getUserIP() {
+    private function getUserIP() {
         return filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP);
     }
 
@@ -19,7 +19,7 @@ class logger
             $data[1] = "REQUEST_URI_UNKNOWN";
         }
         $data[2] = $message;
-        $data[3] = logger::getUserIP();
+        $data[3] = self::getUserIP();
 
         $result = $model->getDB()->query('insertAuditlog', [$data]);
         if(!$result) {

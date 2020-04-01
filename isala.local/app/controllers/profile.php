@@ -29,7 +29,7 @@ class Profile extends Controller implements Authentication, Authorization
 
         // Define logging model
         $this->logModel = $this->model('LoggingModel');
-        
+
         logger::log($_SESSION['uid'], 'Viewing profilepage', $this->logModel);
 
         // Check if user is authorized to view this page

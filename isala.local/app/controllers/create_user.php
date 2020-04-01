@@ -1,6 +1,7 @@
 <?php
 
 require_once('../app/core/Controller.php');
+require_once("../app/logging/logger.php");
 
 class create_user extends Controller
 {
@@ -36,7 +37,10 @@ class create_user extends Controller
                 echo "<div id=\"accountinput\" >";
                 echo "<p style=\"color: #0000ff\">Vul alle velden in om een gebruiker toe te voegen.</p>";
                 echo "</div>";
-            } else echo "<p style=\"color: #0000ff\">" . htmlentities($this->err_msg) . "</p>";
+            } else {
+                logger::log($_POST['uid'], $this->err_msg, $this->model);
+                echo "<p style=\"color: #0000ff\">" . htmlentities($this->err_msg) . "</p>";
+            }
         }
     }
 
@@ -51,6 +55,7 @@ class create_user extends Controller
             // Is Ldap query successful
             if (!$r) {
                 if ($this->err_msg == '') {
+                    logger::log($_POST['uid'], 'LDAP - connection failed', $this->model);
                     echo "<div id=\"accountinput\" >";
                     echo "<p style=\"color: #FC240F\">Er kan geen verbinding worden gemaakt.</p>";
                     echo "</div>";
@@ -65,6 +70,7 @@ class create_user extends Controller
             //check if user already exists
             if ($this->model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])){
                 if ($this->err_msg == '') {
+                    logger::log($_POST['uid'], 'LDAP - user already exists', $this->model);
                     echo "<div id=\"accountinput\" >";
                     echo "<p style=\"color: #FC240F\">Deze gebruiker bestaat al.</p>";
                     echo "</div>";
@@ -98,6 +104,7 @@ class create_user extends Controller
             if ($r)
             {
                 if ($this->err_msg == '') {
+                    logger::log($_POST['uid'], 'LDAP - user created successfully', $this->model);
                     echo "<div id=\"accountinput\" >";
                     echo "<p style=\"color: #008000\">De gebruiker is succesvol aangemaakt.</p>";
                     echo "</div>";
@@ -108,6 +115,7 @@ class create_user extends Controller
             else
             {
                 if ($this->err_msg == '') {
+                    logger::log($_POST['uid'], 'LDAP - connection failed', $this->model);
                     echo "<div id=\"accountinput\" >";
                     echo "<p style=\"color: #FC240F\">Er kan geen verbinding gemaakt worden.</p>";
                     echo "</div>";
@@ -120,6 +128,7 @@ class create_user extends Controller
         } else {
             // Ldap connection could not be established
             if ($this->err_msg == '') {
+                logger::log($_POST['uid'], 'LDAP - connection failed', $this->model);
                 echo "<div id=\"accountinput\" >";
                 echo "<p style=\"color: #FC240F\">Connectie met LDAP service is mislukt.</p>";
                 echo "</div>";
@@ -134,6 +143,7 @@ class create_user extends Controller
         //Check if database connection can be established
         if (!$this->model->getDB()->getConnection()) {
             if ($this->err_msg == '') {
+                logger::log($_POST['uid'], 'Database - user creation failed', $this->model);
                 echo "<div id=\"accountinput\" >";
                 echo "<p style=\"color: #FC240F\">Kan geen verbinding maken met de database.</p>";
                 echo "</div>";
@@ -145,6 +155,7 @@ class create_user extends Controller
         //check if user already exists
         if ($this->model->getDB()->query('doesUIDAlreadyExist', [$uid]) === NULL){
             if ($this->err_msg == '') {
+                logger::log($_POST['uid'], 'Database - user already exists', $this->model);
                 echo "<div id=\"accountinput\" >";
                 echo "<p style=\"color: #FC240F\">Deze gebruiker bestaat al.</p>";
                 echo "</div>";
@@ -153,7 +164,7 @@ class create_user extends Controller
             return false;
         }
 
-
+        logger::log($_POST['uid'], 'Database - user created successfully', $this->model);
         $this->model->getDB()->query('createUser', [$uid, $adres, $dokter]);
     }
 }

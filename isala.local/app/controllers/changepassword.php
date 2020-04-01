@@ -2,6 +2,7 @@
 
 require_once('../app/core/Controller.php');
 require_once('../app/interfaces/Authentication.php');
+require_once("../app/logging/logger.php");
 
 class ChangePassword extends Controller implements Authentication
 {
@@ -30,6 +31,7 @@ class ChangePassword extends Controller implements Authentication
                     else echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
                 }
             } else {
+                logger::log($_SESSION['uid'], 'Password change failed', $this->model);
                 echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
             }
         }
@@ -91,6 +93,8 @@ class ChangePassword extends Controller implements Authentication
         $group = $this->model->getLDAP()->query('getGroupOfUser', [$user_dn]);
         $table = $this->model->getDB()->query('convertGroupToTable', [$group]);
         $this->model->getDB()->query('updateLastPasswordChange', [$uid, $table]);
+
+        logger::log($_SESSION['uid'], 'Password changed', $this->model);
 
         return true;
     }

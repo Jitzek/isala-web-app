@@ -4,6 +4,8 @@
  * Project initialization
 */
 
+//ini_set('display_errors', 1);
+
 // Don't store session in permanent storage
 ini_set('session.cookie_lifetime', 0);
 

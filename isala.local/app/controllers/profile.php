@@ -6,6 +6,7 @@ require_once('../app/interfaces/Authorization.php');
 require_once('../app/models/UserModel.php');
 require_once('../app/models/PatiëntModel.php');
 require_once('../app/models/GecontracteerdModel.php');
+require_once("../app/logging/logger.php");
 
 class Profile extends Controller implements Authentication, Authorization
 {
@@ -23,6 +24,8 @@ class Profile extends Controller implements Authentication, Authorization
 
         // Define model to be used for this page
         $this->model = $this->model('ProfileModel');
+
+        logger::log($_SESSION['uid'], 'Viewing profilepage', $this->model);
 
         // Check if user is authorized to view this page
         if ($target != $_SESSION['uid']) {

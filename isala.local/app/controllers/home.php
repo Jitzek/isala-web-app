@@ -3,13 +3,17 @@
 require_once('../app/core/Controller.php');
 require_once('../app/models/UserModel.php');
 require_once('../app/interfaces/Authentication.php');
+require_once("../app/logging/logger.php");
 
 class Home extends Controller implements Authentication
 {
     private $model;
+    private $logModel;
+
     public function index()
     {
         if (!$this->authenticate()) {
+            logger::log($_SESSION['uid'], 'User automatically logged out', $this->logModel);
             return header("Location: /public/logout");
             die();
         }
@@ -17,6 +21,11 @@ class Home extends Controller implements Authentication
         // Define Model to be used
         $this->model = $this->model('HomeModel');
         $user = new UserModel($_SESSION['uid']);
+
+        // Define logging model
+        $this->logModel = $this->model('LoggingModel');
+
+        logger::log($_SESSION['uid'], 'Viewing homepage', $this->logModel);
 
         // Parse data to view (beware of order)
         $this->view('includes/head');

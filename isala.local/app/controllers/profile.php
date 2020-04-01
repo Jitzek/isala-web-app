@@ -6,12 +6,15 @@ require_once('../app/interfaces/Authorization.php');
 require_once('../app/models/UserModel.php');
 require_once('../app/models/PatiëntModel.php');
 require_once('../app/models/GecontracteerdModel.php');
+require_once("../app/logging/logger.php");
 
 class Profile extends Controller implements Authentication, Authorization
 {
     private $model;
     private $user;
     private $target;
+    private $logModel;
+
     public function index($target = '')
     {
         // If no target is given, default to current user
@@ -24,6 +27,11 @@ class Profile extends Controller implements Authentication, Authorization
         // Define model to be used for this page
         $this->model = $this->model('ProfileModel');
 
+        // Define logging model
+        $this->logModel = $this->model('LoggingModel');
+
+        logger::log($_SESSION['uid'], 'Viewing profilepage', $this->logModel);
+
         // Check if user is authorized to view this page
         if ($target != $_SESSION['uid']) {
             $args['target'] = $target;
@@ -33,7 +41,7 @@ class Profile extends Controller implements Authentication, Authorization
             }
         }
 
-        // Define Target Model 
+        // Define Target Model
         if ($this->model->getLDAP()->query('getGroupOfUid', [$target]) == 'patienten') $this->target = new PatiëntModel($target);
         else $this->target = new GecontracteerdModel($target);
 

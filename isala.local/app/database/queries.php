@@ -310,6 +310,15 @@ class DBQueries
         return $results;
     }
 
+    public function insertAuditlog($data) {
+        $date = date('Y-m-d H:i:s');
+        $query = $this->conn->prepare("INSERT INTO Auditlog (`UID`, action_time, request_url, message, ip) VALUES (? ,?, ?, ?, ?)");
+        $query->bind_param("sssss", $data[0], $date, $data[1], $data[2], $data[3]);
+        $query->execute();
+        $query->close();
+        return true;
+    }
+
     public function convertGroupToTable($group)
     {
         switch ($group) {

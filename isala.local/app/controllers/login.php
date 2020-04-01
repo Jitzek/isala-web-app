@@ -1,16 +1,21 @@
 <?php
 
 require_once('../app/core/Controller.php');
+require_once("../app/logging/logger.php");
 
 class Login extends Controller
 {
     private $model;
+    private $logModel;
     private $err_msg = '';
 
     public function index()
     {
         // Define Model to be used
         $this->model = $this->model('LoginModel');
+
+        // Define logging model
+        $this->logModel = $this->model('LoggingModel');
 
         // Parse data to view
 		$this->view('includes/head');
@@ -30,12 +35,19 @@ class Login extends Controller
                     // Generate 2FA Code
                     $this->model->getDB()->query('set2FA', [$uid, $table]);
 
+                    logger::log($uid, 'Login successful', $this->logModel);
                     // Redirect user to two factor authentication
                     header("Location: /public/login/twofactor/" . $token);
                     die();
                 } else {
-                    if ($this->err_msg == '') echo "<p style=\"color: #FC240F\">UserID or Password was incorrect</p>";
-                    else echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
+                    if ($this->err_msg == '') {
+                        logger::log($uid, 'Attempt to login failed', $this->logModel);
+                        echo "<p style=\"color: #FC240F\">UserID or Password was incorrect</p>";
+                    }
+                    else {
+                        logger::log($uid, $this->err_msg, $this->logModel);
+                        echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
+                    }
                 }
             } else {
                 echo "<p style=\"color: #FC240F\">Please Fill in all Fields</p>";

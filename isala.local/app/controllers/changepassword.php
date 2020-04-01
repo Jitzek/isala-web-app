@@ -2,11 +2,14 @@
 
 require_once('../app/core/Controller.php');
 require_once('../app/interfaces/Authentication.php');
+require_once("../app/logging/logger.php");
 
 class ChangePassword extends Controller implements Authentication
 {
     private $model;
     private $err_msg;
+    private $logModel;
+
     public function index() // TODO: don't transfer password over URL
     {
         if (!$this->authenticate()) {
@@ -16,11 +19,16 @@ class ChangePassword extends Controller implements Authentication
         // Define Model to be used
         $this->model = $this->model('ChangePasswordModel');
 
+        // Define logging model
+        $this->logModel = $this->model('LoggingModel');
+
+
         // Parse data to view
         $this->view('changepassword/index', ['title' => $this->model->getTitle()]);
 
         if ($_POST['change_password']) {
             if (!$_POST['prev_password'] || !$_POST['new_password'] || !$_POST['new_password2']) {
+                logger::log($_SESSION['uid'], 'Fields left empty when changing password', $this->logModel);
                 echo "<p style=\"color: #FC240F\">Please fill in all fields</p>";
                 return;
             }
@@ -29,9 +37,16 @@ class ChangePassword extends Controller implements Authentication
                     header("Location: /public/home");
                     exit();
                 }
-                if (strlen($this->err_msg) < 1) echo "<p style=\"color: #FC240F\">Something went wrong</p>";
-                else echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
+                if (strlen($this->err_msg) < 1) {
+                    logger::log($_SESSION['uid'], 'Password change failed', $this->logModel);
+                    echo "<p style=\"color: #FC240F\">Something went wrong</p>";
+                }
+                else {
+                    logger::log($_SESSION['uid'], $this->err_msg, $this->logModel);
+                    echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
+                }
             } else {
+                logger::log($_SESSION['uid'], $this->err_msg, $this->logModel);
                 echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
             }
         }
@@ -93,6 +108,8 @@ class ChangePassword extends Controller implements Authentication
         $group = $this->model->getLDAP()->query('getGroupOfUser', [$user_dn]);
         $table = $this->model->getDB()->query('convertGroupToTable', [$group]);
         $this->model->getDB()->query('updateLastPasswordChange', [$uid, $table]);
+
+        logger::log($_SESSION['uid'], 'Password changed', $this->logModel);
 
         return true;
     }

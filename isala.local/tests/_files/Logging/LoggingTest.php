@@ -16,12 +16,12 @@ class LoggingTest extends TestCase
 
     /** @test */
     public function log_Incorrectyly1() {
-        $uid = '123';
+        $uid = NULL;
         $message = NULL;
         $model = $this->getMockBuilder(Model::class)
             ->getMock();
 
-        $this->assertTrue($this->log($uid, $message, $model));
+        $this->assertFalse($this->log($uid, $message, $model));
     }
 
     public function log($uid, $message, $model) {
@@ -34,7 +34,7 @@ class LoggingTest extends TestCase
         $db->method('getConnection')
             ->willReturn(true);
 
-        $result = $db->method('query')
+        $db->method('query')
             ->will(
                 $this->returnCallback(function ($arg, $args) {
                     if($arg == 'insertAuditlog' && $args[0] != NULL && $args[1] != NULL) {
@@ -46,11 +46,17 @@ class LoggingTest extends TestCase
             )
         );
 
-        if(!$result) {
+        if (!$model->getDB()->getConnection()) {
+            $err_msg = 'Connection Failed';
             return false;
-        } else {
-            return true;
         }
+
+        $data1 = $uid;
+        $data2 = $message;
+        $data3 = $model;
+
+        if($model->getDB()->query('insertAuditlog',[$data1, $data2, $data3])) return true;
+        else return false;
     }
 }
 

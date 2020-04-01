@@ -142,6 +142,6 @@ class ChangePassword extends Controller implements Authentication
 
     private function hasSpecialCharacter($string)
     {
-        return (bool) preg_match('/[\'^£$%&*()}{@#~?><>,|=_+¬-]/', $string);
+        return (bool) preg_match('/[\'^£$%&*()}{@#~?><>,!|=_+¬-]/', $string);
     }
 }

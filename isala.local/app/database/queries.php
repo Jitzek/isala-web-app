@@ -358,5 +358,70 @@ class DBQueries
                 return '';
         }
     }
+	
+    public function uploadDocument($path, $patiënt, $owner, $title, $date)
+    {
+        $query = $this->conn->prepare("INSERT INTO Document (`Path`, `Patiënt`, `Eigenaar`, `Titel`, `Datum`) VALUES (?, ?, ?, ?, ?)");
+        $query->bind_param("sssss", $path, $patiënt, $owner, $title, $date);
+        $query->execute();
+        $query->close();
+    }
+    public function getDocs($owner, $patiënt)
+    {
+        if($owner == ""){
+            $query = $this->conn->prepare("SELECT Titel, Eigenaar, Datum, ID FROM Document WHERE Patiënt = ?");
+            $query->bind_param("s", $patiënt);
+            $query->execute();
+            $result = $query->get_result();
+            $query->close();
+            return $result;
+        }
+        else{
+            $query = $this->conn->prepare("SELECT Titel, Eigenaar, Datum, ID FROM Document WHERE Eigenaar = ? AND Patiënt = ?");
+            $query->bind_param("ss", $owner, $patiënt);
+            $query->execute();
+            $result = $query->get_result();
+            $query->close();
+            return $result;
+        }
+
+    }
+    public function getDocPath($id){
+        $query = $this->conn->prepare("SELECT `Path` FROM Document WHERE ID = ?");
+        $query->bind_param("i", $id);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+    public function getOwnerDoc($id){
+        $query = $this->conn->prepare("SELECT Eigenaar FROM Document WHERE ID = ?");
+        echo $this->conn->error;
+        $query->bind_param("i", $id);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+    public function getPatiëntdocument($id){
+        $query = $this->conn->prepare("SELECT Patiënt FROM Document WHERE ID = ?");
+        $query->bind_param("i", $id);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
+    public function getDokterPatiënt($patiënt)
+    {
+        $query = $this->conn->prepare("SELECT Dokter FROM Patiënt WHERE `UID` = ?");
+        $query->bind_param("s", $patiënt);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        return $this->result;
+    }
 }
- 

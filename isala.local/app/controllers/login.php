@@ -157,9 +157,7 @@ class Login extends Controller
         $this->model->getDB()->query('succesfulLoginAttempt', [$uid, $this->getUserIP()]);
 
         $_SESSION['uid'] = $uid;
-
-
-
+        
         return true;
     }
 

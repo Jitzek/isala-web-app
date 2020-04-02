@@ -7,12 +7,10 @@ class DownloadModel
 {
     private $title;
     private $db;
-    private $ldap;
     public function __construct()
     {
         $this->title = 'Download';
         $this->db = new DBConnection();
-        $this->ldap = new LDAPConnection();
     }
 
     public function getTitle()
@@ -23,10 +21,5 @@ class DownloadModel
     public function getDB()
     {
         return $this->db;
-    }
-
-    public function getLDAP()
-    {
-        return $this->ldap;
     }
 }

@@ -6,12 +6,10 @@ require_once('../app/database/connection.php');
 class FileuploadModel
 {
     private $title;
-    private $ldap;
     private $db;
     public function __construct()
     {
         $this->title = 'Fileupload';
-        $this->ldap = new LDAPConnection();
         $this->db = new DBConnection();
     }
 
@@ -23,10 +21,5 @@ class FileuploadModel
     public function getDB()
     {
         return $this->db;
-    }
-
-    public function getLDAP()
-    {
-        return $this->ldap;
     }
 }

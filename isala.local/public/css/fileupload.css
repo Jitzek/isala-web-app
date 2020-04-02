@@ -1,0 +1,43 @@
+#center{
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+table, th, td{
+    border: 1px solid black;
+    padding: 15px 70px 15px 70px;
+    text-align: left;
+}
+th{
+    background-color: #b1b5cc;
+}
+tr:nth-child(odd){
+    background-color: white;
+}
+tr:nth-child(even){
+    background-color: #e7e8e9;
+}
+#filetoupload{
+    width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+#filetoupload + #butt{
+    font-size: 1.25em;
+    font-weight: 700;
+    color: white;
+    background-color: black;
+    display: inline-block;
+    cursor: pointer;
+}
+
+#filetoupload:focus + #butt, #filetoupload + #butt:hover{
+    background-color: red;
+}
+form{
+    margin-top: 30px;
+}

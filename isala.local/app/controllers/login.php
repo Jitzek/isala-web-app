@@ -154,8 +154,8 @@ class Login extends Controller
 
         // Reset login attemps (but not blocked time penalty)
         $this->model->getDB()->query('succesfulLoginAttempt', [$uid, $this->getUserIP()]);
-
         $_SESSION['uid'] = $uid;
+		$_SESSION['role'] = $this->model->getLDAP()->query('getGroupOfUid', [$uid]);
 
         return true;
     }

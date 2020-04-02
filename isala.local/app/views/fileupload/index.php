@@ -34,16 +34,16 @@
                     <tr>
                         <td>
                             <form action="/public/download" method="post">
-                                <input type="hidden" name="ID" value="<?= $row["ID"] ?>">
+                                <input type="hidden" name="ID" value="<?= htmlentities($row["ID"]) ?>">
                                 <input type="submit" value="Submit" name="submit">
                             </form>
-                            <?= $row["Titel"] ?>
+                            <?= htmlentities($row["Titel"]) ?>
                         </td>
                         <td>
-                            <?= $row["Eigenaar"] ?>
+                            <?= htmlentities($row["Eigenaar"]) ?>
                         </td>
                         <td>
-                            <?= $row["Datum"] ?>
+                            <?= htmlentities($row["Datum"]) ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>

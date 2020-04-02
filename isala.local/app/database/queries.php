@@ -263,12 +263,12 @@ class DBQueries
         return $this->result;
     }
 
-    public function getGecontracteerd($uid, $table)
+    public function getGecontracteerd($patiëntuid, $column)
     {
         // Make sure $table can not be edited by user
-        $table = $this->conn->real_escape_string($table);
-        $query = $this->conn->prepare("SELECT {$table} FROM Patiënt WHERE `UID` = ?");
-        $query->bind_param("s", $uid);
+        $column = $this->conn->real_escape_string($column);
+        $query = $this->conn->prepare("SELECT {$column} FROM Patiënt WHERE `UID` = ?");
+        $query->bind_param("s", $patiëntuid);
         $query->execute();
         $query->bind_result($this->result);
         $query->fetch();
@@ -361,7 +361,7 @@ class DBQueries
 	
     public function uploadDocument($path, $patiënt, $owner, $title, $date)
     {
-        $query = $this->conn->prepare("INSERT INTO Document (`Path`, `Patiënt`, `Eigenaar`, `Titel`, `Datum`) VALUES (?, ?, ?, ?, ?)");
+        $query = $this->conn->prepare("INSERT INTO Document (`Path`, Patiënt, Eigenaar, Titel, Datum) VALUES (?, ?, ?, ?, ?)");
         $query->bind_param("sssss", $path, $patiënt, $owner, $title, $date);
         $query->execute();
         $query->close();
@@ -423,5 +423,19 @@ class DBQueries
         $query->fetch();
         $query->close();
         return $this->result;
+    }
+    public function checkpatiënt($patiënt){
+        $query = $this->conn->prepare("SELECT COUNT(`UID`) FROM Patiënt WHERE `UID` = ?");
+        $query->bind_param("s", $patiënt);
+        $query->execute();
+        $query->bind_result($this->result);
+        $query->fetch();
+        $query->close();
+        if($this->result >= 1){
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }

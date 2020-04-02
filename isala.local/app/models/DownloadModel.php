@@ -1,6 +1,4 @@
 <?php
-
-require_once('../app/ldap/connection.php');
 require_once('../app/database/connection.php');
 
 class DownloadModel

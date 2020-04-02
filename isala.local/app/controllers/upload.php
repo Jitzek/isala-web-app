@@ -11,13 +11,13 @@ class Upload extends Controller
         $this->view('fileupload/upload', ['title' => $this->model->getTitle()]);
 
         if ($_SESSION['role'] != "dokters" && $_SESSION['role'] != "dietisten" && $_SESSION['role'] != "fysiotherapeuten" && $_SESSION['role'] != "psychologen") {
-            header("Location: /public/login");
+            header("Location: /public/fileupload");
             $this->uploadOk = 0;
             exit();
         }
         $patiënt = $_POST['patiënt'];
         //check if patiënt exists
-        if (!$this->model->getDB()->query('checkpatiënt', [$patiënt])) {
+        if (!$this->model->getDB()->query('patiëntExists', [$patiënt])) {
             echo "Patiënt bestaat niet";
             $this->uploadOk = 0;
             exit();
@@ -43,7 +43,7 @@ class Upload extends Controller
         //check if directory exists, if not make new directory with correct permissions
         if (!file_exists($target_dir)) {
             $old = umask(0);
-            mkdir($target_dir, 0760, true);
+            mkdir($target_dir, 0770, true);
             umask($old);
         }
         $target_file = $target_dir . basename($_FILES["fileToUpload"]["name"]);
@@ -147,7 +147,7 @@ class Upload extends Controller
             $datetime = date_create()->format('Y-m-d H:i:s');
             //move temporary file to server with correct permissions
             if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
-                chmod($target_file, 0760);
+                chmod($target_file, 0770);
                 //upload filepath to database
                 $this->model->getDB()->query('uploadDocument', [$target_file, $_POST['patiënt'], $_SESSION['uid'], $_POST['title'], $datetime]);
                 header("Location: /public/fileupload?state=uploaded");

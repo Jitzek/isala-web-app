@@ -4,8 +4,6 @@
 class logger
 {
     public $model;
-    public $err_msg = '';
-
 
     private function getUserIP() {
         return filter_var($_SERVER['REMOTE_ADDR'], FILTER_VALIDATE_IP);

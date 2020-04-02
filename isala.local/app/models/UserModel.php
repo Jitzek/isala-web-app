@@ -49,4 +49,14 @@ class UserModel
     {
         return $this->group;
     }
+    
+    public function setCookie($accepted)
+    {
+        return $this->db->query('setCookie', [$this->uid, $this->db->query('convertGroupToTable', [$this->group]), $accepted]);
+    }
+
+    public function getCookie()
+    {
+        return $this->db->query('getCookie', [$this->uid, $this->db->query('convertGroupToTable', [$this->group])]);
+    }
 }

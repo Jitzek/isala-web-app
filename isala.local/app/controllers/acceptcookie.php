@@ -6,7 +6,7 @@ class AcceptCookie extends Controller
     public function index()
     {
         //Set accepted cookie to true
-        $user = $user = $this->model('UserModel');
+        $user = $this->model('UserModel', [$_SESSION['uid']]);
         $user->setCookie(1);
 
         header("Location: /public/home");

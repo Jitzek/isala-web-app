@@ -4,16 +4,16 @@ require_once('../app/database/queries.php');
 
 class DBConnection
 {
-    private $servername = "isala.local";
-    private $username = "server";
-    private $password = "mydebian";
-    private $database = "isalaDB";
     private $conn;
 
     private $queries;
 
     public function __construct() {
-        $this->conn = new mysqli($this->servername, $this->username, $this->password, $this->database);
+        $username = apache_getenv("DB_USER");
+        $password = apache_getenv("DB_PASSWD");
+        $servername = apache_getenv("DB_SERVER");
+        $database = apache_getenv("DB_NAME");
+        $this->conn = new mysqli($servername, $username, $password, $database);
         $this->queries = new DBQueries($this->getConnection());
     }
 

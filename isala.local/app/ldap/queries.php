@@ -90,7 +90,9 @@ class LDAPQueries
 
     public function changeUserPassword($user_dn, $password)
     {
-        if (!$this->bind('cn=admin,dc=isala,dc=local', 'isaladebian')) return false; //TODO: Make new LDAP account with limited permissions
+        $admin = apache_getenv("LDAP_ADMIN");
+        $passwd = apache_getenv("LDAP_PASSWD");
+        if (!$this->bind($admin, $passwd)) return false; //TODO: Make new LDAP account with limited permissions
 
         // Encrypt password
         $salt = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+?><":}{|-=[];,./', 6)), 0, 6);

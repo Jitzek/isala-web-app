@@ -3,9 +3,6 @@
 require_once('../app/core/Controller.php');
 require_once('../app/interfaces/Authentication.php');
 require_once('../app/interfaces/Authorization.php');
-require_once('../app/models/UserModel.php');
-require_once('../app/models/PatiëntModel.php');
-require_once('../app/models/GecontracteerdModel.php');
 require_once("../app/logging/logger.php");
 
 class Profile extends Controller implements Authentication, Authorization
@@ -17,21 +14,13 @@ class Profile extends Controller implements Authentication, Authorization
 
     public function index($target = '')
     {
-        // If no target is given, default to current user
-        if (!$target) $target = $_SESSION['uid'];
         if (!$this->authenticate()) {
-            logger::log($_SESSION['uid'], 'User automatically logged out', $this->logModel);
             return header("Location: /public/logout");
             die();
         }
 
-        // Define model to be used for this page
-        $this->model = $this->model('ProfileModel');
-
-        // Define logging model
-        $this->logModel = $this->model('LoggingModel');
-
-        logger::log($_SESSION['uid'], 'Viewing profilepage', $this->logModel);
+        // If no target is given, default to current user
+        if (!$target) $target = $_SESSION['uid'];
 
         // Check if user is authorized to view this page
         if ($target != $_SESSION['uid']) {
@@ -42,19 +31,29 @@ class Profile extends Controller implements Authentication, Authorization
             }
         }
 
+        // Define model to be used for this page
+        $this->model = $this->model('ProfileModel');
+
+        // Define logging model
+        $this->logModel = $this->model('LoggingModel');
+
+        logger::log($_SESSION['uid'], 'Viewing profilepage', $this->logModel);
+
         // Define Target Model 
-        if ($this->model->getLDAP()->query('getGroupOfUid', [$target]) == 'patienten') $this->target = new PatiëntModel($target);
-        else $this->target = new GecontracteerdModel($target);
+        if ($this->model->getLDAP()->query('getGroupOfUid', [$target]) == 'patienten') $this->target =  $this->model('PatiëntModel', [$target]);
+        else $this->target =  $this->model('GecontracteerdModel', [$target]);
 
         // Define User Model
-        $this->user = new UserModel($_SESSION['uid']);
+        $this->user = $this->model('UserModel', [$_SESSION['uid']]);
+
         $algemeen['Naam'] = $this->target->getFullName();
         $algemeen['Adres'] = $this->target->getAdres();
         $algemeen['Telefoonnummer'] = $this->target->getTelefoonnummer();
         // Only define medical_data if target is a Patiënt
         // Decide which role can see what medical data
         if ($this->target->getGroup() == 'patienten') {
-            $algemeen['Leeftijd'] = $this->target->getLeeftijd();
+            $algemeen['GeboorteDatum'] = $this->target->getGeboorteDatum();
+            $algemeen['Leeftijd'] = $this->target->getLeeftijd() . ' Jaar';
             $algemeen['Geslacht'] = $this->target->getGeslacht();
             switch ($this->user->getGroup()) {
                 case 'patienten':
@@ -103,13 +102,14 @@ class Profile extends Controller implements Authentication, Authorization
 
     public function authorize($args)
     {
-        $group = $this->model->getLDAP()->query('getGroupOfUid', [$_SESSION['uid']]);
+        $model = $this->model('AuthorizationModel');
+        $group = $model->getLDAP()->query('getGroupOfUid', [$_SESSION['uid']]);
 
         // Check if user is not a Patiënt
         if ($group == 'patienten') return false;
 
         // Check if user has access to target
-        $patienten = $this->model->getDB()->query('getPatientsOfGecontracteerd', [$_SESSION['uid'], $this->model->getDB()->query('convertGroupToColumn', [$group])]);
+        $patienten = $model->getDB()->query('getPatientsOfGecontracteerd', [$_SESSION['uid'], $model->getDB()->query('convertGroupToColumn', [$group])]);
         if (!in_array($args['target'], $patienten)) {
             return false;
         }

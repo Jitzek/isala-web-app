@@ -13,7 +13,7 @@
                     <i class="hamburger-menu icon-white"></i>
                 </button>
                 <a href="/public/home">
-                    <img class="isala-logo" src="../public/imgs/isala-logo.png" />
+                    <img class="isala-logo" src="/public/imgs/isala-logo.png" />
                 </a>
             </div>
             <div class="nav-right-side">

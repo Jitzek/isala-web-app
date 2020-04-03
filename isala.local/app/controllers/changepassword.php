@@ -12,31 +12,37 @@ class ChangePassword extends Controller implements Authentication
 
     public function index() // TODO: don't transfer password over URL
     {
+        // Authenticate user
         if (!$this->authenticate()) {
             return header("Location: /public/logout");
             die();
         }
+
         // Define Model to be used
         $this->model = $this->model('ChangePasswordModel');
 
         // Define logging model
         $this->logModel = $this->model('LoggingModel');
 
-
         // Parse data to view
         $this->view('changepassword/index', ['title' => $this->model->getTitle()]);
 
+        // If request for password change has been send
         if ($_POST['change_password']) {
+            // If required fields werent filled in
             if (!$_POST['prev_password'] || !$_POST['new_password'] || !$_POST['new_password2']) {
                 logger::log($_SESSION['uid'], 'Fields left empty when changing password', $this->logModel);
                 echo "<p style=\"color: #FC240F\">Please fill in all fields</p>";
                 return;
             }
+            // Validate password
             if ($this->validatePassword($_POST['new_password'], $_POST['new_password2'])) {
+                // Attempt to change password
                 if ($this->attemptPasswordChange($_SESSION['uid'], $_POST['prev_password'], $_POST['new_password'])) {
                     header("Location: /public/home");
                     exit();
                 }
+                // Display error messages
                 if (strlen($this->err_msg) < 1) {
                     logger::log($_SESSION['uid'], 'Password change failed', $this->logModel);
                     echo "<p style=\"color: #FC240F\">Something went wrong</p>";
@@ -63,29 +69,6 @@ class ChangePassword extends Controller implements Authentication
 
     protected function attemptPasswordChange($uid, $prev_password, $new_password)
     {
-        $user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
-        // Check if prev_password is correct
-        if (!$this->model->getLDAP()->query('bind', [$user_dn, $prev_password])) {
-            $this->err_msg = 'Password is incorrect';
-            return false;
-        }
-        // Check if passwords are the same 
-        if ($prev_password == $new_password) {
-            $this->err_msg = 'New Password can\'t be the same as the old Password';
-            return false;
-        }
-
-        if (!$this->model->getLDAP()->getConnection()) {
-            $this->err_msg = 'Connection Failed';
-            return false;
-        }
-        if (!$this->model->getDB()->getConnection()) {
-            $this->err_msg = 'Connection Failed';
-            return false;
-        }
-
-        if (!$this->model->getLDAP()->query('bind', [NULL, NULL])) return false; //NULL, NULL = anonymous bind
-
         // Check if User Exists
         if (
             !$this->model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])
@@ -95,11 +78,27 @@ class ChangePassword extends Controller implements Authentication
         // Get user DN
         $user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
 
-        // Check if user is valid and/or given password is correct
+        // Check if prev_password is correct
         if (!$this->model->getLDAP()->query('bind', [$user_dn, $prev_password])) {
-            $this->err_msg = 'Incorrect Password';
+            $this->err_msg = 'Gegeven wachtwoord is incorrect';
             return false;
         }
+        // Check if passwords are the same 
+        if ($prev_password == $new_password) {
+            $this->err_msg = 'Het nieuwe wachtwoord kan niet gelijk zijn aan het oude wachtwoord';
+            return false;
+        }
+
+        if (!$this->model->getLDAP()->getConnection()) {
+            $this->err_msg = 'Verbinding mislukt';
+            return false;
+        }
+        if (!$this->model->getDB()->getConnection()) {
+            $this->err_msg = 'Verbinding mislukt';
+            return false;
+        }
+
+        if (!$this->model->getLDAP()->query('bind', [NULL, NULL])) return false; //NULL, NULL = anonymous bind
 
         // Change password
         if (!$this->model->getLDAP()->query('changeUserPassword', [$user_dn, $new_password])) return false;
@@ -117,37 +116,33 @@ class ChangePassword extends Controller implements Authentication
     private function validatePassword($new_password, $new_password_validation)
     {
         if ($new_password != $new_password_validation) {
-            $this->err_msg = 'The two new passwords don\'t match';
+            $this->err_msg = 'The twee nieuwe wachtwoorden komen niet overeen';
             return false;
         }
         // Length of password should be 8 characters or longer
         if (strlen($new_password) < 8) {
-            $this->err_msg = 'New Password needs to be at least 8 characters long';
+            $this->err_msg = 'Het nieuwe wachtwoord moet minstens 8 karakters lang zijn';
+            return false;
+        }
+
+        // Length of password should be 999 characters or less
+        if (strlen($new_password) > 999) {
+            $this->err_msg = 'Het nieuwe wachtwoord mag maximaal 999 karakters lang zijn';
             return false;
         }
 
         // Password should contain atleast one capital letter
-        if (!$this->isPartUppercase($new_password)) {
-            $this->err_msg = 'New Password needs to contain atleast one capital letter';
+        if (!(bool) preg_match('/[A-Z]/', $new_password)) {
+            $this->err_msg = 'Het nieuwe wachtwoord moet minstens één hoofdletter bevatten';
             return false;
         }
 
         // Password should contain atleast one special character
-        if (!$this->hasSpecialCharacter($new_password)) {
-            $this->err_msg = 'New Password needs to contain atleast one special character';
+        if (!(bool) preg_match('/[\'^£$%&*()}{@#~?><>,!|=_+¬-]/', $new_password)) {
+            $this->err_msg = 'Het nieuwe wachtwoord moet minstens één speciaal karakter bevatten';
             return false;
         }
 
         return true;
-    }
-
-    private function isPartUppercase($string)
-    {
-        return (bool) preg_match('/[A-Z]/', $string);
-    }
-
-    private function hasSpecialCharacter($string)
-    {
-        return (bool) preg_match('/[\'^£$%&*()}{@#~?><>,!|=_+¬-]/', $string);
     }
 }

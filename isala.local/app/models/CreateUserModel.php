@@ -10,7 +10,7 @@ class CreateUserModel
     private $ldap;
     public function __construct()
     {
-        $this->title = 'create user';
+        $this->title = 'Create User';
         $this->db = new DBConnection();
         $this->ldap = new LDAPConnection();
     }

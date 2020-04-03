@@ -35,7 +35,6 @@ class Download extends Controller
     public function authorize(){
         //if the session is empty goto login
         if(!isset($_SESSION['role'])){
-            header("Location: /public/login");
             exit();
         }
         //if role is dokter: get patient and get the dokter of the patient, if the dokter of the patient is not the same as the current dokter, goto login
@@ -43,24 +42,23 @@ class Download extends Controller
             $patiënt = $this->model->getDB()->query('getPatiëntdocument', [$_POST['ID']]);
             $dokter = $this->model->getDB()->query('getDokterPatiënt', [$patiënt]);
             if($_SESSION['uid'] != $dokter){
-                header("Location: /public/login");
+                header("Location: /public/fileupload");
                 exit();
             }
         }
         //check if current patient is the reciever of the document
-        else if($_SESSION['role'] == "patiënten"){
+        else if($_SESSION['role'] == "patienten"){
             $patiënt = $this->model->getDB()->query('getPatiëntdocument', [$_POST['ID']]);
             if($_SESSION['uid'] != $patiënt){
-                header("Location: /public/login");
+                header("Location: /public/fileupload");
                 exit();
             }
         }
         //check if the current user is the owner of the document
         else{
             $owner = $this->model->getDB()->query('getOwnerDoc', [$_POST['ID']]);
-            echo "test";
             if($owner != $_SESSION['uid']){
-                header("Location: /public/home");
+                header("Location: /public/fileupload");
                 exit();
             }
         }

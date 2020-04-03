@@ -237,7 +237,9 @@ class createUser extends Controller implements Authentication, Authorization
         // Establish if Ldap connection is possible
         $ds = $this->model->getLDAP()->getConnection();
         if ($ds) {
-            $r = $this->model->getLDAP()->query('bind', ["cn=admin,dc=isala,dc=local", "isaladebian"]); //NULL, NULL = anonymous bind
+            $admin = apache_getenv("LDAP_ADMIN");
+            $passwd = apache_getenv("LDAP_PASSWD");
+            $r = $this->model->getLDAP()->query('bind', [$admin, $passwd]); //NULL, NULL = anonymous bind
 
             // Is Ldap query successful
             if (!$r) {

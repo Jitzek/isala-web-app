@@ -150,7 +150,7 @@ class Upload extends Controller
                 chmod($target_file, 0770);
                 //upload filepath to database
                 $this->model->getDB()->query('uploadDocument', [$target_file, $_POST['patiënt'], $_SESSION['uid'], $_POST['title'], $datetime]);
-                header("Location: /public/fileupload?state=uploaded");
+                header("Location: /public/fileupload/$patiënt");
                 exit();
             } else {
                 echo "Er is iets misgegaan bij het uploaden van het bestand.";

@@ -15,7 +15,7 @@
         <div id="userlist">
             <h4>SELECTEER PATIËNTEN</h4>
             <?php
-            echo "<select name='patient[]' multiple size = 9>";
+            echo "<select name='patient[]' size = 9>";
             $array = $data['showpatienten'];
             if ($array == NULL) {
                 echo "Deze dokter heeft geen patienten";
@@ -64,7 +64,7 @@
                     if ($data['fysio'] === NULL) {
                         echo "<td>Geen</td>";
                     } else {
-                        $fisio = $data['fisio'];
+                        $fisio = $data['fysio'];
                         echo "<td>$fisio</td>";
                     }
                     if ($data['psych'] === NULL) {
@@ -79,7 +79,7 @@
 
             <h4>SELECTEER GECONTRACTEERDEN</h4>
             <?php
-            echo "<select name='contracted[]' multiple size = 9>";
+            echo "<select name='contracted[]' size = 9>";
             $array = $data['showcontracted'];
             if ($array == NULL) {
                 echo "Er zijn geen gecontracteerden";

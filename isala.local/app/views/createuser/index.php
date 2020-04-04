@@ -16,25 +16,25 @@
         <h3>Maak nieuw account aan</h3>
         <form method="post" action="/public/createuser">
             <label>Voornaam:</label><br>
-            <input type="text" name="cn" maxlength="128" value="<?= htmlentities($data['prev_values']['cn']); ?>"/>
+            <input type="text" name="cn" maxlength="128" value="<?= htmlentities(isset($data['prev_values']['cn']) ? $data['prev_values']['cn'] : ''); ?>"/>
             <br><br>
             <label>Achternaam:</label><br>
-            <input type="text" name="sn" maxlength="128" value="<?= htmlentities($data['prev_values']['sn']); ?>"/>
+            <input type="text" name="sn" maxlength="128" value="<?= htmlentities(isset($data['prev_values']['sn']) ? $data['prev_values']['sn'] : ''); ?>"/>
             <br><br>
             <label>Adres:</label><br>
-            <input type="text" name="adres" maxlength="256" value="<?= htmlentities($data['prev_values']['adres']); ?>"/>
+            <input type="text" name="adres" maxlength="256" value="<?= htmlentities(isset($data['prev_values']['adres']) ? $data['prev_values']['adres'] : ''); ?>"/>
             <br><br>
             <label>Geboortedatum:</plabel><br>
-            <input type="date" name="geboortedatum" maxlength="10" value="<?= htmlentities($data['prev_values']['geboortedatum']); ?>"/>
+            <input type="date" name="geboortedatum" maxlength="10" value="<?=  htmlentities(isset($data['prev_values']['geboortedatum']) ? $data['prev_values']['geboortedatum'] : ''); ?>"/>
             <br><br>
             <label>Geslacht:</label><br>
-            <input type="text" name="geslacht" maxlength="32" value="<?= htmlentities($data['prev_values']['geslacht']); ?>"/>
+            <input type="text" name="geslacht" maxlength="32" value="<?= htmlentities(isset($data['prev_values']['geslacht']) ? $data['prev_values']['geslacht'] : ''); ?>"/>
             <br><br>
             <label>Telefoonnummer:</label><br>
-            <input type="text" name="telefoonnummer" maxlength="32" value="<?= htmlentities($data['prev_values']['telefoonnummer']); ?>"/>
+            <input type="text" name="telefoonnummer" maxlength="32" value="<?= htmlentities(isset($data['prev_values']['telefoonnummer']) ? $data['prev_values']['telefoonnummer'] : ''); ?>"/>
             <br><br>
             <label>BSN:</label><br>
-            <input type="text" name="uid" maxlength="9" value="<?= htmlentities($data['prev_values']['uid']); ?>"/>
+            <input type="text" name="uid" maxlength="9" value="<?=  htmlentities(isset($data['prev_values']['uid']) ? $data['prev_values']['uid'] : ''); ?>"/>
             <br><br>
             <label>Wachtwoord:</label><br>
             <input type="password" name="passwd" />

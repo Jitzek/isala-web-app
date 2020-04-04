@@ -27,11 +27,9 @@ class Patientlist extends Controller implements Authentication, Authorization
 
         $user = $this->model('UserModel', [$_SESSION['uid']]);
         $patienten = $this->model->getDB()->query('getPatientsOfGecontracteerd', [$user->getUid(), $this->model->getDB()->query('convertGroupToColumn', [$user->getGroup()])]);
-
         $patientList = [];
-        foreach($patienten as $patient){
+        foreach(isset($patienten) ? $patienten : [] as $patient){
             $patientList[] = $this->model('PatiëntModel', [$patient]);
-            //array_push($patientList, $patient);
         }
         $this->view('includes/head');
         $this->view('includes/navbar', ['name' => $user->getFullName()]);

@@ -30,7 +30,7 @@ class DBQueries
     public function failedLoginAttempt($uid, $ip)
     {
         // Insert IP and UID into Blocked IP if a combination of the don't exist already
-        $query = $this->conn->prepare(  "INSERT INTO BlockedIP (IP, IsBlocked, Tries, `UID`)
+        $query = $this->conn->prepare("INSERT INTO BlockedIP (IP, IsBlocked, Tries, `UID`)
                                         SELECT ?, FALSE, 0, ? FROM DUAL
                                         WHERE NOT EXISTS (
                                             SELECT IP FROM BlockedIP WHERE IP = ? AND `UID` = ?
@@ -78,7 +78,7 @@ class DBQueries
             $results[] = $row['IP'];
         }
         $query->close();
-        return $results;
+        return isset($results) ? $results : [];
     }
 
     public function blockExpired($uid, $ip)
@@ -102,7 +102,8 @@ class DBQueries
         return true;
     }
 
-    public function isUpdateLastPasswordChangeEmpty($uid) {
+    public function isUpdateLastPasswordChangeEmpty($uid)
+    {
         $query = $this->conn->prepare("SELECT Last_Password_Change FROM Patiënt WHERE `UID` = ?");
         $query->bind_param("s", $uid);
         $query->execute();
@@ -172,7 +173,8 @@ class DBQueries
         return $this->result;
     }
 
-    public function createUser($uid, $adres, $geboortedatum, $geslacht, $telefoonnummer, $dokter) {
+    public function createUser($uid, $adres, $geboortedatum, $geslacht, $telefoonnummer, $dokter)
+    {
         $query = $this->conn->prepare("INSERT INTO Patiënt (`UID`, Adres, GeboorteDatum, Geslacht, Telefoonnummer, Dokter, Accepted_Cookie) VALUES (?, ?, ?, ?, ?, ?,false)");
         $query->bind_param("ssssss", $uid, $adres, $geboortedatum, $geslacht, $telefoonnummer, $dokter);
         $query->execute();
@@ -180,7 +182,8 @@ class DBQueries
         return true;
     }
 
-    public function patiëntExists($uid) {
+    public function patiëntExists($uid)
+    {
         $query = $this->conn->prepare("SELECT COUNT(`UID`) FROM Patiënt WHERE `UID` = ?");
         $query->bind_param("s", $uid);
         $query->execute();
@@ -216,6 +219,7 @@ class DBQueries
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
         $query = $this->conn->prepare("SELECT Adres FROM {$table} WHERE `UID` = ?");
+        if (!$query) return FALSE;
         $query->bind_param("s", $uid);
         $query->execute();
         $query->bind_result($this->result);
@@ -229,6 +233,7 @@ class DBQueries
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
         $query = $this->conn->prepare("SELECT GeboorteDatum FROM {$table} WHERE `UID` = ?");
+        if (!$query) return FALSE;
         $query->bind_param("s", $uid);
         $query->execute();
         $query->bind_result($this->result);
@@ -236,12 +241,13 @@ class DBQueries
         $query->close();
         return $this->result;
     }
-    
+
     public function getGeslacht($uid, $table)
     {
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
         $query = $this->conn->prepare("SELECT Geslacht FROM {$table} WHERE `UID` = ?");
+        if (!$query) return FALSE;
         $query->bind_param("s", $uid);
         $query->execute();
         $query->bind_result($this->result);
@@ -255,6 +261,7 @@ class DBQueries
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
         $query = $this->conn->prepare("SELECT Telefoonnummer FROM {$table} WHERE `UID` = ?");
+        if (!$query) return FALSE;
         $query->bind_param("s", $uid);
         $query->execute();
         $query->bind_result($this->result);
@@ -283,8 +290,7 @@ class DBQueries
                                             (SELECT ID FROM 
                                                 (SELECT * FROM Meting ORDER BY Datum, Tijd DESC) as t2 GROUP BY Onderwerp HAVING COUNT(*) > 1)
                                             ");
-        }
-        else $query = $this->conn->prepare("SELECT * FROM Meting WHERE Patiënt = ? AND Categorie = ?");
+        } else $query = $this->conn->prepare("SELECT * FROM Meting WHERE Patiënt = ? AND Categorie = ?");
         $query->bind_param("ss", $uid, $category);
         $query->execute();
         $this->results = $query->get_result();
@@ -292,29 +298,28 @@ class DBQueries
             $result[] = $row;
         }
         $query->close();
-        return $result;
+        return isset($result) ? $result : [];
     }
 
     public function getPatientsOfGecontracteerd($uid, $role)
     {
         // Make sure $role can not be edited by user
         $role = $this->conn->real_escape_string($role);
-        if($query = $this->conn->prepare("SELECT `UID` FROM Patiënt WHERE {$role} = ?")) {
-            $query->bind_param("s", $uid);
-            $query->execute();
-            $result = $query->get_result();
-            while ($row = $result->fetch_assoc()) {
-                $results[] = $row['UID'];
-            }
-            $query->close();
-        } else {
-            return NULL;
+        $query = $this->conn->prepare("SELECT `UID` FROM Patiënt WHERE {$role} = ?");
+        if (!$query) return [];
+        $query->bind_param("s", $uid);
+        $query->execute();
+        $result = $query->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $results[] = $row['UID'];
         }
+        $query->close();
 
         return $results;
     }
 
-    public function insertAuditlog($data) {
+    public function insertAuditlog($data)
+    {
         $date = date('Y-m-d H:i:s');
         $query = $this->conn->prepare("INSERT INTO Auditlog (`UID`, action_time, request_url, message, ip) VALUES (? ,?, ?, ?, ?)");
         $query->bind_param("sssss", $data[0], $date, $data[1], $data[2], $data[3]);
@@ -322,7 +327,7 @@ class DBQueries
         $query->close();
         return true;
     }
-	
+
     public function uploadDocument($path, $patiënt, $owner, $title, $date)
     {
         $query = $this->conn->prepare("INSERT INTO Document (`Path`, Patiënt, Eigenaar, Titel, Datum) VALUES (?, ?, ?, ?, ?)");
@@ -333,15 +338,14 @@ class DBQueries
 
     public function getDocs($owner, $patiënt)
     {
-        if($owner == ""){
+        if ($owner == "") {
             $query = $this->conn->prepare("SELECT Titel, Eigenaar, Datum, ID FROM Document WHERE Patiënt = ?");
             $query->bind_param("s", $patiënt);
             $query->execute();
             $result = $query->get_result();
             $query->close();
             return $result;
-        }
-        else{
+        } else {
             $query = $this->conn->prepare("SELECT Titel, Eigenaar, Datum, ID FROM Document WHERE Eigenaar = ? AND Patiënt = ?");
             $query->bind_param("ss", $owner, $patiënt);
             $query->execute();
@@ -349,10 +353,10 @@ class DBQueries
             $query->close();
             return $result;
         }
-
     }
 
-    public function getDocPath($id){
+    public function getDocPath($id)
+    {
         $query = $this->conn->prepare("SELECT `Path` FROM Document WHERE ID = ?");
         $query->bind_param("i", $id);
         $query->execute();
@@ -362,7 +366,8 @@ class DBQueries
         return $this->result;
     }
 
-    public function getOwnerDoc($id){
+    public function getOwnerDoc($id)
+    {
         $query = $this->conn->prepare("SELECT Eigenaar FROM Document WHERE ID = ?");
         $query->bind_param("i", $id);
         $query->execute();
@@ -372,7 +377,8 @@ class DBQueries
         return $this->result;
     }
 
-    public function getPatiëntdocument($id){
+    public function getPatiëntdocument($id)
+    {
         $query = $this->conn->prepare("SELECT Patiënt FROM Document WHERE ID = ?");
         $query->bind_param("i", $id);
         $query->execute();
@@ -393,8 +399,9 @@ class DBQueries
         return $this->result;
     }
 
-    public function getGecontracteerdWithoutCurrent($uid) {
-        if($query = $this->conn->prepare("SELECT `UID` FROM Gecontracteerd WHERE UID != ?")) {
+    public function getGecontracteerdWithoutCurrent($uid)
+    {
+        if ($query = $this->conn->prepare("SELECT `UID` FROM Gecontracteerd WHERE UID != ?")) {
             $query->bind_param("s", $uid);
             $query->execute();
             $result = $query->get_result();
@@ -409,8 +416,9 @@ class DBQueries
         return $results;
     }
 
-    public function linkGecontracteerdenToUsers($uid, $group, $guid, $dokter) {
-        if($query = $this->conn->prepare("UPDATE Patiënt SET {$group} = ? WHERE `UID` = ? AND Dokter = ?")) {
+    public function linkGecontracteerdenToUsers($uid, $group, $guid, $dokter)
+    {
+        if ($query = $this->conn->prepare("UPDATE Patiënt SET {$group} = ? WHERE `UID` = ? AND Dokter = ?")) {
             $query->bind_param("sss", $guid, $uid, $dokter);
             $query->execute();
             $query->close();
@@ -420,40 +428,43 @@ class DBQueries
         }
     }
 
-    public function getDietistFromPatient($uid) {
-        if($query = $this->conn->prepare("SELECT Diëtist FROM Patiënt WHERE UID = ?")) {
+    public function getDietistFromPatient($uid)
+    {
+        if ($query = $this->conn->prepare("SELECT Diëtist FROM Patiënt WHERE UID = ?")) {
             $query->bind_param("s", $uid);
             $query->execute();
             $query->bind_result($this->result);
             $query->fetch();
             $query->close();
-        }  else {
+        } else {
             return NULL;
         }
         return $this->result;
     }
 
-    public function getFysiotherapeutFromPatient($uid) {
-        if($query = $this->conn->prepare("SELECT Fysiotherapeut FROM Patiënt WHERE UID = ?")) {
+    public function getFysiotherapeutFromPatient($uid)
+    {
+        if ($query = $this->conn->prepare("SELECT Fysiotherapeut FROM Patiënt WHERE UID = ?")) {
             $query->bind_param("s", $uid);
             $query->execute();
             $query->bind_result($this->result);
             $query->fetch();
             $query->close();
-        }  else {
+        } else {
             return NULL;
         }
         return $this->result;
     }
 
-    public function getPsycholoogFromPatient($uid) {
-        if($query = $this->conn->prepare("SELECT Psycholoog FROM Patiënt WHERE UID = ?")) {
+    public function getPsycholoogFromPatient($uid)
+    {
+        if ($query = $this->conn->prepare("SELECT Psycholoog FROM Patiënt WHERE UID = ?")) {
             $query->bind_param("s", $uid);
             $query->execute();
             $query->bind_result($this->result);
             $query->fetch();
             $query->close();
-        }  else {
+        } else {
             return NULL;
         }
         return $this->result;

@@ -39,7 +39,7 @@ class createUser extends Controller implements Authentication, Authorization
         // Remember previous entered data except for the password
         $prev_values = $_POST;
         unset($prev_values['passwd']);
-        if ($_POST["create_user"]) {
+        if (isset($_POST["create_user"])) {
             // Are fields left empty
             if ($_POST['uid'] && $_POST['cn'] && $_POST['sn'] && $_POST['passwd'] && $_POST['adres'] && $_POST['geboortedatum'] && $_POST['geslacht'] && $_POST['telefoonnummer']) {
                 if ($this->validateInput($_POST['cn'], $_POST['sn'], $_POST['adres'], $_POST['geboortedatum'], $_POST['geslacht'], $_POST['telefoonnummer'], $_POST['uid'], $_POST['passwd'])) {

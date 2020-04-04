@@ -13,7 +13,7 @@ class LDAPQueries
     {
         ldap_set_option($this->conn, LDAP_OPT_REFERRALS, 0);
         ldap_set_option($this->conn, LDAP_OPT_PROTOCOL_VERSION, 3);
-        return ldap_bind($this->conn, $ldapdn, $ldappass);
+        return @ldap_bind($this->conn, $ldapdn, $ldappass);
     }
 
     public function uidExists($uid, $ldap_ObjClass)
@@ -39,7 +39,7 @@ class LDAPQueries
         $filter = vsprintf("(uid=%s)", $this->arrSanitizeFilter([$uid]));
         $entries = ldap_search($this->conn, $this->baseDN, $filter);
         $results = ldap_get_entries($this->conn, $entries);
-        return $results[0]["dn"];
+        return isset($results[0]["dn"]) ? $results[0]["dn"] : NULL;
     }
 
     public function userInGroup($ldapdn, $ldap_user, $ldap_group_ObjClass, $ldap_user_ObjClass)
@@ -62,7 +62,7 @@ class LDAPQueries
 
     public function getGroupOfUid($ldap_user_uid)
     {
-        $ldap_user_dn = $this->getDnByUid($ldap_user_uid) | '';
+        $ldap_user_dn = $this->getDnByUid($ldap_user_uid);
         $ldap_group_ObjClass = "groupOfNames";
         $ldap_user_ObjClass = "member";
         $filter = vsprintf("(&(objectClass=%s)(%s=%s))", $this->arrSanitizeFilter([$ldap_group_ObjClass, $ldap_user_ObjClass, $ldap_user_dn]));
@@ -107,7 +107,7 @@ class LDAPQueries
         $filter = vsprintf("(uid=%s)", $this->arrSanitizeFilter([$uid]));
         $entries = ldap_search($this->conn, $this->baseDN, $filter);
         $results = ldap_get_entries($this->conn, $entries);
-        return $results[0]["cn"][0];
+        return isset($results[0]["cn"][0]) ? $results[0]["cn"][0] : 'ongedefinieerd';
     }
 
     public function getLastNameByUid($uid)
@@ -115,7 +115,7 @@ class LDAPQueries
         $filter = vsprintf("(uid=%s)", $this->arrSanitizeFilter([$uid]));
         $entries = ldap_search($this->conn, $this->baseDN, $filter);
         $results = ldap_get_entries($this->conn, $entries);
-        return $results[0]["sn"][0];
+        return isset($results[0]["sn"][0]) ? $results[0]["sn"][0] : 'ongedefinieerd';
     }
 
     /**

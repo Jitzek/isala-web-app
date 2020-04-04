@@ -1,6 +1,5 @@
 <?php
 
-require_once('../app/database/connection.php');
 require_once('../app/ldap/connection.php');
 
 class HomeModel

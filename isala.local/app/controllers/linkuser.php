@@ -87,7 +87,6 @@ class linkuser extends Controller implements Authentication
                 }
             } else
                 echo "U moet zowel een patiënt als een gecontracteerde medewerker selecteren.";
-
         }
 
         echo "</div>";

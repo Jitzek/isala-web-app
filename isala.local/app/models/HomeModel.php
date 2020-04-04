@@ -1,7 +1,5 @@
 <?php
 
-require_once('../app/ldap/connection.php');
-
 class HomeModel
 {
     private $title;
@@ -10,16 +8,10 @@ class HomeModel
     public function __construct()
     {
         $this->title = 'Home';
-        $this->ldap = new LDAPConnection();
     }
 
     public function getTitle()
     {
         return $this->title;
-    }
-
-    public function getLDAP()
-    {
-        return $this->ldap;
     }
 }

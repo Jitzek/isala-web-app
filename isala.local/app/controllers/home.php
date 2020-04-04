@@ -8,7 +8,6 @@ class Home extends Controller implements Authentication
 {
     private $model;
     private $logModel;
-    private $auth;
 
     public function index()
     {
@@ -26,20 +25,13 @@ class Home extends Controller implements Authentication
         //$user = new UserModel($_SESSION['uid']);
         $user = $this->model('UserModel', [$_SESSION['uid']]);
 
-        //logger::log($_SESSION['uid'], 'Viewing homepage', $this->logModel);
-
-        if (!$this->authorize()) {
-            //logger::log($_SESSION['uid'], 'User automatically logged out', $this->logModel);
-            $this->auth = false;
-        } else {
-            $this->auth = true;
-        }
+        logger::log($_SESSION['uid'], 'Viewing homepage', $this->logModel);
 
         // Parse data to view (beware of order)
         $this->view('includes/head');
         $this->view('includes/navbar', ['name' => $user->getFullName()]);
         $this->view('home/index', ['title' => $this->model->getTitle(), 'name' => $user->getFullName(), 'group' => $user->getGroup(),
-            'auth' => $this->auth]);
+            'auth' => $user->getGroup() == 'dokters' ? true : false]);
         $this->view('includes/cookie', ['accepted_cookie' => $user->getCookie()]);
         $this->view('includes/footer');
     }
@@ -50,17 +42,6 @@ class Home extends Controller implements Authentication
         if (!$_SESSION['uid']) {
             return false;
         }
-        return true;
-    }
-
-    // Can this user view certain elements
-    public function authorize()
-    {
-        $group = $this->model->getLDAP()->query('getGroupOfUid', [$_SESSION['uid']]);
-
-        // Check if user is not a Patiënt
-        if ($group == 'patienten') return false;
-
         return true;
     }
 }

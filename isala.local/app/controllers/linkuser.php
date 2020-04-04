@@ -31,7 +31,7 @@ class linkuser extends Controller implements Authentication
         $gecontracteerden = $this->getContracted();
 
         if (!$this->authorize()) {
-            return header("Location: /public/logout");
+            return header("Location: /public/home");
             die();
         }
 
@@ -50,7 +50,6 @@ class linkuser extends Controller implements Authentication
         $this->view('linkuser/index', ['title' => $this->model->getTitle(), 'name' => $user->getFullName(), 'group' => $user->getGroup(),
             'showpatienten' => $patienten, 'showcontracted' => $gecontracteerden, 'dietist' => $this->data[0],
             'fysio' => $this->data[1], 'psych' => $this->data[2]]);
-        $this->view('includes/cookie', ['accepted_cookie' => $user->getCookie()]);
         $this->view('includes/footer');
 
 
@@ -59,7 +58,7 @@ class linkuser extends Controller implements Authentication
         // Check if form is submitted successfully
         if (isset($_POST["submit"])) {
             // Check if any option is selected
-            if ($_POST["contracted"]) {
+            if (isset($_POST["contracted"])) {
                 // Retrieving each selected option
                 foreach ($_POST['patient'] as $subject)
                     echo "You selected $subject";
@@ -108,8 +107,8 @@ class linkuser extends Controller implements Authentication
     {
         $group = $this->model->getLDAP()->query('getGroupOfUid', [$_SESSION['uid']]);
 
-        // Check if user is not a Patiënt
-        if ($group == 'patienten') return false;
+        // Check if user is a Dokter
+        if ($group != 'dokters') return false;
 
         return true;
     }

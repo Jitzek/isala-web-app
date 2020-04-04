@@ -1,0 +1,41 @@
+#userlist{
+    display: grid;
+    justify-content: center;
+    padding-top: 40px;
+    z-index: 1 !important;
+}
+
+#userlist button {
+    margin-top: 10px;
+}
+
+#userlist select {
+    width:100%;
+}
+
+#userlist table {
+    width:100%;
+}
+
+#userlist table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+#userlist th, td {
+    padding: 1px;
+    text-align: left;
+}
+
+#userlist table#t01 tr:nth-child(even) {
+    background-color: #eee;
+}
+
+#userlist table#t01 tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+#userlisttable#t01 th {
+    background-color: black;
+    color: white;
+}

@@ -409,9 +409,9 @@ class DBQueries
         return $results;
     }
 
-    public function linkGecontracteerdenToUsers($uid, $group, $guid) {
-        if($query = $this->conn->prepare("UPDATE Patiënt SET {$group} = ? WHERE `UID` = ?")) {
-            $query->bind_param("ss", $guid, $uid);
+    public function linkGecontracteerdenToUsers($uid, $group, $guid, $dokter) {
+        if($query = $this->conn->prepare("UPDATE Patiënt SET {$group} = ? WHERE `UID` = ? AND Dokter = ?")) {
+            $query->bind_param("sss", $guid, $uid, $dokter);
             $query->execute();
             $query->close();
             return true;

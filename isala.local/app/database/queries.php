@@ -13,6 +13,7 @@ class DBQueries
     {
         // Reset login attempts to give user another 5 tries without resetting the time blocked penalty
         $query = $this->conn->prepare("UPDATE BlockedIP SET Tries = FLOOR(Tries / 5) * 5 WHERE `UID` = ? AND IP = ?");
+        if (!$query) return;
         $query->bind_param("ss", $uid, $ip);
         $query->execute();
         $query->close();
@@ -22,6 +23,7 @@ class DBQueries
     {
         // Reset Failed Attempts
         $query = $this->conn->prepare("DELETE FROM BlockedIP WHERE `UID` = ? AND IP = ?");
+        if (!$query) return;
         $query->bind_param("ss", $uid, $ip);
         $query->execute();
         $query->close();
@@ -35,6 +37,7 @@ class DBQueries
                                         WHERE NOT EXISTS (
                                             SELECT IP FROM BlockedIP WHERE IP = ? AND `UID` = ?
                                         ) LIMIT 1;");
+        if (!$query) return;
         $query->bind_param("ssss", $ip, $uid, $ip, $uid);
         $query->execute();
         $query->close();
@@ -51,6 +54,7 @@ class DBQueries
     {
         $limit = 5;
         $query = $this->conn->prepare("SELECT TRIES FROM BlockedIP WHERE `UID` = ? AND IP = ?");
+        if (!$query) return;
         $query->bind_param("ss", $uid, $ip);
         $query->execute();
         $query->bind_result($this->result);
@@ -71,6 +75,7 @@ class DBQueries
     public function blockedIPArray($uid)
     {
         $query = $this->conn->prepare("SELECT IP FROM BlockedIP WHERE `UID` = ? AND IsBlocked = TRUE");
+        if (!$query) return [];
         $query->bind_param("s", $uid);
         $query->execute();
         $result = $query->get_result();
@@ -85,6 +90,7 @@ class DBQueries
     {
         // Check if current date has surpassed expiration date
         $query = $this->conn->prepare("SELECT Expiration FROM BlockedIP WHERE IP = ? AND `UID` = ?");
+        if (!$query) return true;
         $query->bind_param("ss", $ip, $uid);
         $query->execute();
         $query->bind_result($this->result);
@@ -105,6 +111,7 @@ class DBQueries
     public function isUpdateLastPasswordChangeEmpty($uid)
     {
         $query = $this->conn->prepare("SELECT Last_Password_Change FROM Patiënt WHERE `UID` = ?");
+        if (!$query) return;
         $query->bind_param("s", $uid);
         $query->execute();
         $result = $query->get_result();
@@ -121,6 +128,7 @@ class DBQueries
         $table = $this->conn->real_escape_string($table);
         $newdate = date("Y-m-d");
         $query = $this->conn->prepare("UPDATE {$table} SET Last_Password_Change = ? WHERE `UID` = ?");
+        if (!$query) return;
         $query->bind_param("ss", $newdate, $uid);
         $query->execute();
         $query->close();
@@ -132,6 +140,7 @@ class DBQueries
         $table = $this->conn->real_escape_string($table);
         $tfa = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 6)), 0, 6);
         $query = $this->conn->prepare("UPDATE {$table} SET 2FA = ? WHERE `UID` = ?");
+        if (!$query) return;
         $query->bind_param("ss", $tfa, $uid);
         $query->execute();
         $query->close();
@@ -155,6 +164,7 @@ class DBQueries
         // Make sure $table can not be edited by user
         $table = $this->conn->real_escape_string($table);
         $query = $this->conn->prepare("UPDATE {$table} SET Token = ? WHERE `UID` = ?");
+        if (!$query) return;
         $query->bind_param("ss", $token, $uid);
         $query->execute();
         $query->close();

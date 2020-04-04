@@ -28,7 +28,7 @@ class ChangePassword extends Controller implements Authentication
         $this->view('changepassword/index', ['title' => $this->model->getTitle()]);
 
         // If request for password change has been send
-        if ($_POST['change_password']) {
+        if (isset($_POST['change_password'])) {
             // If required fields werent filled in
             if (!$_POST['prev_password'] || !$_POST['new_password'] || !$_POST['new_password2']) {
                 logger::log($_SESSION['uid'], 'Fields left empty when changing password', $this->logModel);

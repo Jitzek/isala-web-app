@@ -22,7 +22,7 @@ class Login extends Controller
         $this->view('login/index', ['title' => $this->model->getTitle(), '2fa' => false]);
 
         // Handle Post Request (login)
-        if ($_POST["login"]) {
+        if (isset ($_POST["login"])) {
             if ($_POST['uid'] && $_POST['passwd']) {
                 $uid = $_POST['uid'];
                 if ($this->attemptLogin($_POST['uid'], $_POST['passwd'])) {
@@ -37,7 +37,7 @@ class Login extends Controller
 
                     logger::log($uid, 'Login successful', $this->logModel);
                     // Redirect user to two factor authentication
-                    header("Location: /public/login/twofactor/" . $token);
+                    header("Location: /public/login/twofactor/" . $uid . '/' . $token);
                     die();
                 } else {
                     if ($this->err_msg == '') {
@@ -55,7 +55,7 @@ class Login extends Controller
         }
     }
 
-    public function twofactor($auth_token)
+    public function twofactor($uid, $auth_token)
     {
         // Check if user is authorized to be here
         if (!$_SESSION['auth_token'] || $_SESSION['auth_token'] != $auth_token) {
@@ -69,7 +69,7 @@ class Login extends Controller
         $this->view('login/index', ['title' => $this->model->getTitle(), '2fa' => true]);
 
         // Check for Post
-        if ($_POST['2fa_submit']) {
+        if (isset($_POST['2fa_submit'])) {
             if (strlen($_POST['2fa_code']) == 6) {
                 // Check if user is authorized to be here
                 if (!$_SESSION['auth_token'] || $_SESSION['auth_token'] != $auth_token) {
@@ -77,14 +77,17 @@ class Login extends Controller
                     die();
                 }
 
-                if ($this->attemptAuthenticate($_SESSION['uid'], $_POST['2fa_code'])) {
+                if ($this->attemptAuthenticate($uid, $_POST['2fa_code'])) {
                     // Remove authorization token
                     unset($_SESSION['auth_token']);
 
-                    $user_dn = $this->model->getLDAP()->query('getDnByUid', [$_SESSION['uid']]);
+                    $user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
                     $group = $this->model->getLDAP()->query('getGroupOfUser', [$user_dn]);
                     $table = $this->model->getDB()->query('convertGroupToTable', [$group]);
 
+                    // Assign session variables
+                    $_SESSION['uid'] = $uid;
+                    $_SESSION['role'] = $this->model->getLDAP()->query('getGroupOfUid', [$uid]);
 
                     // Finish logging in
                     if($table == "Gecontracteerd") {
@@ -154,8 +157,6 @@ class Login extends Controller
 
         // Reset login attemps (but not blocked time penalty)
         $this->model->getDB()->query('succesfulLoginAttempt', [$uid, $this->getUserIP()]);
-        $_SESSION['uid'] = $uid;
-		$_SESSION['role'] = $this->model->getLDAP()->query('getGroupOfUid', [$uid]);
 
         return true;
     }

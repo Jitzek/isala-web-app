@@ -134,7 +134,7 @@ class linkuser extends Controller implements Authentication
         // Convert LDAP group to Patient column
         $group = $this->model->getDB()->query('convertGroupToColumn', [$group]);
 
-        if ($this->model->getDB()->query('linkGecontracteerdenToUsers', [$uid, $group, $guid])) {
+        if ($this->model->getDB()->query('linkGecontracteerdenToUsers', [$uid, $group, $guid, $_SESSION['uid']])) {
             return true;
         } else {
             return false;

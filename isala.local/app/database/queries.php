@@ -301,6 +301,7 @@ class DBQueries
                                                 (SELECT * FROM Meting ORDER BY Datum, Tijd DESC) as t2 GROUP BY Onderwerp HAVING COUNT(*) > 1)
                                             ");
         } else $query = $this->conn->prepare("SELECT * FROM Meting WHERE Patiënt = ? AND Categorie = ?");
+        if (!$query) return [];
         $query->bind_param("ss", $uid, $category);
         $query->execute();
         $this->results = $query->get_result();

@@ -15,7 +15,25 @@ class Upload extends Controller
             $this->uploadOk = 0;
             exit();
         }
-        $patiënt = $_POST['patiënt'];
+        if(!isset($_POST['patiënt'])){
+            echo "Geen patiënt geselecteerd";
+            $this->uploadOk = 0;
+            exit();
+        }
+        if(!isset($_POST['title'])){
+            echo "U heeft geen titel gegeven voor het document";
+            $this->uploadOk = 0;
+            exit();
+        }
+        else{
+            $patiënt = $_POST['patiënt'];
+        }
+        if (preg_match('/[^A-Za-z0-9ÄÖÜËÏäöüëïÿẞß ]/', $_POST['title'])) {
+            echo "Titel mag geen vreemde tekens bevatten";
+            $this->uploadOk = 0;
+            exit();
+        }
+
         //check if patiënt exists
         if (!$this->model->getDB()->query('patiëntExists', [$patiënt])) {
             echo "Patiënt bestaat niet";
@@ -38,7 +56,7 @@ class Upload extends Controller
                 $this->uploadOk = 0;
                 exit();
             }
-        } 
+        }
         $target_dir = "{$_SERVER["DOCUMENT_ROOT"]}/app/uploads/{$patiënt}/";
         //check if directory exists, if not make new directory with correct permissions
         if (!file_exists($target_dir)) {
@@ -64,7 +82,7 @@ class Upload extends Controller
         //check file name length
         $this->checkfilenamelength($FileType);
         // Check if $uploadOk is set to 0 by an error
-        $this->uploadfile($target_file);
+        $this->uploadfile($target_file, $patiënt);
     }
     //check mimetype of uploaded document
     public function checkmtype($FileType)
@@ -73,6 +91,11 @@ class Upload extends Controller
         //check if magic database can be used
         if (!$finfo) {
             echo "opening fileinfodb failed";
+            $this->uploadOk = 0;
+            exit();
+        }
+        if($_FILES["fileToUpload"]["size"] == 0){
+            echo "geen bestand geupload";
             $this->uploadOk = 0;
             exit();
         }
@@ -133,7 +156,7 @@ class Upload extends Controller
         }
     }
     //upload the file to the database and server
-    public function uploadfile($target_file)
+    public function uploadfile($target_file, $patiënt)
     {
         if ($this->uploadOk == 0) {
             echo "Bestand is niet geupload";
@@ -149,8 +172,8 @@ class Upload extends Controller
             if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
                 chmod($target_file, 0770);
                 //upload filepath to database
-                $this->model->getDB()->query('uploadDocument', [$target_file, $_POST['patiënt'], $_SESSION['uid'], $_POST['title'], $datetime]);
-                header("Location: /public/fileupload/$patiënt");
+                $this->model->getDB()->query('uploadDocument', [$target_file, $patiënt, $_SESSION['uid'], $_POST['title'], $datetime]);
+                header("Location: /public/fileupload/{$patiënt}");
                 exit();
             } else {
                 echo "Er is iets misgegaan bij het uploaden van het bestand.";

@@ -7,7 +7,7 @@
     <title>
         <?= htmlentities($data['title']) ?>
     </title>
-    <link rel="stylesheet" href="../../public/css/fileupload.css">
+    <link rel="stylesheet" href="/public/css/fileupload.css">
 </head>
 
 <body>
@@ -16,10 +16,9 @@
             <form action="/public/upload" method="post" enctype="multipart/form-data">
                 <input type="file" name="fileToUpload" id="fileToUpload">
                 <label for="fileToUpload" id="butt">Choose a file</label>
-                <label>title</label>
+                <label>Titel</label>
                 <input type="text" name="title" id="title">
-                <label>patiënt(should be removed with uid of patiënt trough post</label>
-                <input type="text" name="patiënt" id="patiënt">
+                <input type="hidden" name="patiënt" id="patiënt" value="<?= htmlentities($data['uid']) ?>">
                 <input type="submit" value="Submit" name="submit">
             </form>
         <?php endif; ?>

@@ -3,6 +3,7 @@
 /** 
  * Project initialization
 */
+
 ini_set('session.cookie_samesite', 'Lax');
 // Don't store session in permanent storage
 ini_set('session.cookie_lifetime', 0);

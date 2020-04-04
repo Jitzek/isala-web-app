@@ -299,14 +299,18 @@ class DBQueries
     {
         // Make sure $role can not be edited by user
         $role = $this->conn->real_escape_string($role);
-        $query = $this->conn->prepare("SELECT `UID` FROM Patiënt WHERE {$role} = ?");
-        $query->bind_param("s", $uid);
-        $query->execute();
-        $result = $query->get_result();
-        while ($row = $result->fetch_assoc()) {
-            $results[] = $row['UID'];
+        if($query = $this->conn->prepare("SELECT `UID` FROM Patiënt WHERE {$role} = ?")) {
+            $query->bind_param("s", $uid);
+            $query->execute();
+            $result = $query->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $results[] = $row['UID'];
+            }
+            $query->close();
+        } else {
+            return NULL;
         }
-        $query->close();
+
         return $results;
     }
 
@@ -386,6 +390,72 @@ class DBQueries
         $query->bind_result($this->result);
         $query->fetch();
         $query->close();
+        return $this->result;
+    }
+
+    public function getGecontracteerdWithoutCurrent($uid) {
+        if($query = $this->conn->prepare("SELECT `UID` FROM Gecontracteerd WHERE UID != ?")) {
+            $query->bind_param("s", $uid);
+            $query->execute();
+            $result = $query->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $results[] = $row['UID'];
+            }
+            $query->close();
+        } else {
+            return NULL;
+        }
+
+        return $results;
+    }
+
+    public function linkGecontracteerdenToUsers($uid, $group, $guid) {
+        if($query = $this->conn->prepare("UPDATE Patiënt SET {$group} = ? WHERE `UID` = ?")) {
+            $query->bind_param("ss", $guid, $uid);
+            $query->execute();
+            $query->close();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function getDietistFromPatient($uid) {
+        if($query = $this->conn->prepare("SELECT Diëtist FROM Patiënt WHERE UID = ?")) {
+            $query->bind_param("s", $uid);
+            $query->execute();
+            $query->bind_result($this->result);
+            $query->fetch();
+            $query->close();
+        }  else {
+            return NULL;
+        }
+        return $this->result;
+    }
+
+    public function getFysiotherapeutFromPatient($uid) {
+        if($query = $this->conn->prepare("SELECT Fysiotherapeut FROM Patiënt WHERE UID = ?")) {
+            $query->bind_param("s", $uid);
+            $query->execute();
+            $query->bind_result($this->result);
+            $query->fetch();
+            $query->close();
+        }  else {
+            return NULL;
+        }
+        return $this->result;
+    }
+
+    public function getPsycholoogFromPatient($uid) {
+        if($query = $this->conn->prepare("SELECT Psycholoog FROM Patiënt WHERE UID = ?")) {
+            $query->bind_param("s", $uid);
+            $query->execute();
+            $query->bind_result($this->result);
+            $query->fetch();
+            $query->close();
+        }  else {
+            return NULL;
+        }
         return $this->result;
     }
 

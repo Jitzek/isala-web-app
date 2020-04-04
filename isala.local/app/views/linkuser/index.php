@@ -7,7 +7,7 @@
     <title>
         <?= htmlentities($data['title']) ?>
     </title>
-    <link rel="stylesheet" href="../../public/css/linkuser.css">
+    <link rel="stylesheet" href="public/css/linkuser.css">
 </head>
 <body>
 <div id="knopkes">

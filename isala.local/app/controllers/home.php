@@ -34,7 +34,7 @@ class Home extends Controller implements Authentication
         } else {
             $this->auth = true;
         }
-        
+
         // Parse data to view (beware of order)
         $this->view('includes/head');
         $this->view('includes/navbar', ['name' => $user->getFullName()]);

@@ -50,7 +50,7 @@ class linkuser extends Controller implements Authentication
         $this->view('linkuser/index', ['title' => $this->model->getTitle(), 'name' => $user->getFullName(), 'group' => $user->getGroup(),
             'showpatienten' => $patienten, 'showcontracted' => $gecontracteerden, 'dietist' => $this->data[0],
             'fysio' => $this->data[1], 'psych' => $this->data[2]]);
-        //$this->view('includes/cookie', ['accepted_cookie' => $user->getCookie()]); // UserModel has no getCookie()
+        $this->view('includes/cookie', ['accepted_cookie' => $user->getCookie()]);
         $this->view('includes/footer');
 
 

@@ -3,6 +3,7 @@
 /** 
  * Project initialization
 */
+ini_set('display_errors', 1);
 ini_set('session.cookie_samesite', 'Lax');
 // Don't store session in permanent storage
 ini_set('session.cookie_lifetime', 0);
@@ -32,7 +33,7 @@ die();
 function create_session()
 {
     // Start Session
-    session_start();
+    if (!isset($_SESSION['lifetime'])) session_start();
 
     // Check if user has been inactive before resetting timer
     user_inactive();
@@ -56,9 +57,6 @@ function regenerate_session()
         if (isset($_SESSION['lifetime']) && $_SESSION['lifetime'] < time() - (5 * 60)) {
             // Regenerate Session ID
             session_regenerate_id(TRUE);
-
-            // Start with new session ID
-            session_start();
 
             // Reset session lifetime Timer
             $_SESSION['lifetime'] = time();

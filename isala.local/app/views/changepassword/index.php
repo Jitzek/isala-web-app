@@ -6,7 +6,7 @@
 
 <head>
     <title>
-        <?= $data['title'] ?>
+        <?= htmlentities($data['title']) ?>
     </title>
 </head>
 

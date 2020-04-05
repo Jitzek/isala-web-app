@@ -17,10 +17,6 @@ class Login extends Controller
         // Define logging model
         $this->logModel = $this->model('LoggingModel');
 
-        // Parse data to view
-		$this->view('includes/head');
-        $this->view('login/index', ['title' => $this->model->getTitle(), '2fa' => false]);
-
         // Handle Post Request (login)
         if (isset ($_POST["login"])) {
             if ($_POST['uid'] && $_POST['passwd']) {
@@ -42,17 +38,20 @@ class Login extends Controller
                 } else {
                     if ($this->err_msg == '') {
                         logger::log($uid, 'Attempt to login failed', $this->logModel);
-                        echo "<p style=\"color: #FC240F\">UserID or Password was incorrect</p>";
+                        $this->err_msg = 'UserID or Password was incorrect';
                     }
                     else {
                         logger::log($uid, $this->err_msg, $this->logModel);
-                        echo "<p style=\"color: #FC240F\">" . htmlentities($this->err_msg) . "</p>";
                     }
                 }
             } else {
-                echo "<p style=\"color: #FC240F\">Please Fill in all Fields</p>";
+                $this->err_msg = 'Please Fill in all Fields';
             }
         }
+
+        // Parse data to view
+		$this->view('includes/head');
+        $this->view('login/index', ['title' => $this->model->getTitle(), '2fa' => false, 'err_msg' => $this->err_msg]);
     }
 
     public function twofactor($uid, $auth_token)
@@ -64,9 +63,6 @@ class Login extends Controller
 
         // Define Model to be used
         $this->model = $this->model('LoginModel');
-
-        // Parse data to view
-        $this->view('login/index', ['title' => $this->model->getTitle(), '2fa' => true]);
 
         // Check for Post
         if (isset($_POST['2fa_submit'])) {
@@ -101,15 +97,17 @@ class Login extends Controller
                     die();
                 } else {
                     if (!$this->err_msg) {
-                        echo "<p style=\"color: #FC240F\">Something went wrong</p>";
-                    } else {
-                        echo "<p style=\"color: #FC240F\">" . $this->err_msg . "</p>";
+                        $this->err_msg = 'Something went wrong';
                     }
                 }
             } else {
-                echo "<p style=\"color: #FC240F\">Incorrect 2FA code</p>";
+                $this->err_msg = 'Incorrect 2FA code';
             }
         }
+        
+        // Parse data to view
+		$this->view('includes/head');
+        $this->view('login/index', ['title' => $this->model->getTitle(), '2fa' => true, 'err_msg' => $this->err_msg]);
     }
 
     protected function attemptLogin($uid, $passwd)
@@ -132,16 +130,19 @@ class Login extends Controller
         ) return false;
 
         // Get User's DN
-        $ldap_user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
+        $user_dn = $this->model->getLDAP()->query('getDnByUid', [$uid]);
+
+        // Get User's Group
+        $group = $this->model->getLDAP()->query('getGroupOfUser', [$user_dn]);
 
         // Get Blocked IPs
-        $blocked_ip_arr = $this->model->getDB()->query('blockedIPArray', [$uid]);
+        $blocked_ip_arr = $this->model->getDB()->query('blockedIPArray', [$uid, $group]);
         if (count($blocked_ip_arr) > 0) {
             foreach ($blocked_ip_arr as $blocked_ip) {
                 // If IP is blocked
                 if ($blocked_ip == $this->getUserIP()) {
                     // Check if block has expired
-                    if (!$this->model->getDB()->query('blockExpired', [$uid, $blocked_ip])) {
+                    if (!$this->model->getDB()->query('blockExpired', [$uid, $group, $blocked_ip])) {
                         $this->err_msg = 'Account geblokkeerd voor het overschrijden van het aantal inlogpogingen, probeer het later weer opnieuw';
                         return false;
                     }
@@ -150,13 +151,13 @@ class Login extends Controller
         }
 
         // Bind to LDAP with this user (check password)
-        if (!$this->model->getLDAP()->query('bind', [$ldap_user_dn, $passwd])) {
-            $this->model->getDB()->query('failedLoginAttempt', [$uid, $this->getUserIP()]);
+        if (!$this->model->getLDAP()->query('bind', [$user_dn, $passwd])) {
+            $this->model->getDB()->query('failedLoginAttempt', [$uid, $group, $this->getUserIP()]);
             return false;
         }
 
         // Reset login attemps (but not blocked time penalty)
-        $this->model->getDB()->query('succesfulLoginAttempt', [$uid, $this->getUserIP()]);
+        $this->model->getDB()->query('succesfulLoginAttempt', [$uid, $group, $this->getUserIP()]);
 
         return true;
     }
@@ -180,14 +181,17 @@ class Login extends Controller
             && !$this->model->getLDAP()->query('uidExists', [$uid, "account"])
         ) return false;
 
+        // Get User's Group
+        $group = $this->model->getLDAP()->query('getGroupOfUid', [$uid]);
+
         // Get Blocked IPs
-        $blocked_ip_arr = $this->model->getDB()->query('blockedIPArray', [$uid]);
+        $blocked_ip_arr = $this->model->getDB()->query('blockedIPArray', [$uid, $group]);
         if (count($blocked_ip_arr) > 0) {
             foreach ($blocked_ip_arr as $blocked_ip) {
                 // If IP is blocked
                 if ($blocked_ip == $this->getUserIP()) {
                     // Check if block has expired
-                    if (!$this->model->getDB()->query('blockExpired', [$uid, $blocked_ip])) {
+                    if (!$this->model->getDB()->query('blockExpired', [$uid, $group, $blocked_ip])) {
                         $this->err_msg = 'Account geblokkeerd voor het overschrijden van het aantal inlogpogingen, probeer het later weer opnieuw';
                         return false;
                     }
@@ -195,17 +199,17 @@ class Login extends Controller
             }
         }
 
-        $table = $this->model->getDB()->query('convertGroupToTable', [$this->model->getLDAP()->query('getGroupOfUid', [$uid])]);
+        $table = $this->model->getDB()->query('convertGroupToTable', [$group]);
 
         // Check if given 2FA is correct
         if ($this->model->getDB()->query('get2FA', [$uid, $table]) != $tfa) {
             $this->err_msg = 'Incorrect 2FA code';
-            $this->model->getDB()->query('failedLoginAttempt', [$uid, $this->getUserIP()]);
+            $this->model->getDB()->query('failedLoginAttempt', [$uid, $group, $this->getUserIP()]);
             return false;
         }
 
         // Remove Block entry from database
-        $this->model->getDB()->query('succesfulTwoFactor', [$uid, $this->getUserIP()]);
+        $this->model->getDB()->query('succesfulTwoFactor', [$uid, $group, $this->getUserIP()]);
 
         return true;
     }

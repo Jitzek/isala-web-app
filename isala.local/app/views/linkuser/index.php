@@ -56,7 +56,7 @@
                     if ($data['dietist'] === NULL) {
                         echo "<td>Geen</td>";
                     } else {
-                        $dietist = $data['dietist'];
+                        $dietist = htmlentities($data['dietist']);
                         echo "<td>";
                         echo $dietist;
                         echo "</td>";
@@ -64,13 +64,13 @@
                     if ($data['fysio'] === NULL) {
                         echo "<td>Geen</td>";
                     } else {
-                        $fisio = $data['fysio'];
+                        $fisio = htmlentities($data['fysio']);
                         echo "<td>$fisio</td>";
                     }
                     if ($data['psych'] === NULL) {
                         echo "<td>Geen</td>";
                     } else {
-                        $psych = $data['psych'];
+                        $psych = htmlentities($data['psych']);
                         echo "<td>$psych</td>";
                     }
                     ?>

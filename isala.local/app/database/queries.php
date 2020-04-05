@@ -9,33 +9,39 @@ class DBQueries
         $this->conn = $connection;
     }
 
-    public function succesfulLoginAttempt($uid, $ip)
+    public function succesfulLoginAttempt($uid, $group, $ip)
     {
+        // Column isn't user determined but escape just incase
+        $column = $this->conn->real_escape_string($this->convertGroupToTable($group));
         // Reset login attempts to give user another 5 tries without resetting the time blocked penalty
-        $query = $this->conn->prepare("UPDATE BlockedIP SET Tries = FLOOR(Tries / 5) * 5 WHERE `UID` = ? AND IP = ?");
+        $query = $this->conn->prepare("UPDATE BlockedIP SET Tries = FLOOR(Tries / 5) * 5 WHERE {$column} = ? AND IP = ?");
         if (!$query) return;
         $query->bind_param("ss", $uid, $ip);
         $query->execute();
         $query->close();
     }
 
-    public function succesfulTwoFactor($uid, $ip)
+    public function succesfulTwoFactor($uid, $group, $ip)
     {
+        // Column isn't user determined but escape just incase
+        $column = $this->conn->real_escape_string($this->convertGroupToTable($group));
         // Reset Failed Attempts
-        $query = $this->conn->prepare("DELETE FROM BlockedIP WHERE `UID` = ? AND IP = ?");
+        $query = $this->conn->prepare("DELETE FROM BlockedIP WHERE {$column} = ? AND IP = ?");
         if (!$query) return;
         $query->bind_param("ss", $uid, $ip);
         $query->execute();
         $query->close();
     }
 
-    public function failedLoginAttempt($uid, $ip)
+    public function failedLoginAttempt($uid, $group, $ip)
     {
+        // Column isn't user determined but escape just incase
+        $column = $this->conn->real_escape_string($this->convertGroupToTable($group));
         // Insert IP and UID into Blocked IP if a combination of the don't exist already
-        $query = $this->conn->prepare("INSERT INTO BlockedIP (IP, IsBlocked, Tries, `UID`)
+        $query = $this->conn->prepare("INSERT INTO BlockedIP (IP, IsBlocked, Tries, {$column})
                                         SELECT ?, FALSE, 0, ? FROM DUAL
                                         WHERE NOT EXISTS (
-                                            SELECT IP FROM BlockedIP WHERE IP = ? AND `UID` = ?
+                                            SELECT IP FROM BlockedIP WHERE IP = ? AND {$column} = ?
                                         ) LIMIT 1;");
         if (!$query) return;
         $query->bind_param("ssss", $ip, $uid, $ip, $uid);
@@ -43,38 +49,41 @@ class DBQueries
         $query->close();
 
         // Update amount of Tries by adding 1
-        $query = $this->conn->prepare("UPDATE BlockedIP SET Tries = Tries + 1 WHERE `UID` = ? AND IP = ?");
+        $query = $this->conn->prepare("UPDATE BlockedIP SET Tries = Tries + 1 WHERE {$column} = ? AND IP = ?");
         $query->bind_param("ss", $uid, $ip);
         $query->execute();
         $query->close();
-        $this->blockIPIfLimitExceeded($uid, $ip);
+        $this->blockIPIfLimitExceeded($uid, $group, $ip);
     }
 
-    private function blockIPIfLimitExceeded($uid, $ip)
+    private function blockIPIfLimitExceeded($uid, $group, $ip)
     {
+        // Column isn't user determined but escape just incase
+        $column = $this->conn->real_escape_string($this->convertGroupToTable($group));
         $limit = 5;
-        $query = $this->conn->prepare("SELECT TRIES FROM BlockedIP WHERE `UID` = ? AND IP = ?");
+        $query = $this->conn->prepare("SELECT TRIES FROM BlockedIP WHERE {$column} = ? AND IP = ?");
         if (!$query) return;
         $query->bind_param("ss", $uid, $ip);
         $query->execute();
         $query->bind_result($this->result);
         $query->fetch();
         $query->close();
-
         // Get expiration date of block
         $minutes = floor(($this->result / $limit < 30 ? $this->result / $limit : 30));
         $expiration = date('Y-m-d H:i:s', strtotime("+{$minutes} minutes", strtotime(date("Y-m-d H:i:s"))));
 
-        $query = $this->conn->prepare("UPDATE BlockedIP SET IsBlocked = TRUE, Expiration = ? WHERE IP = ? AND `UID` = ? AND (TRIES % ?) = 0");
+        $query = $this->conn->prepare("UPDATE BlockedIP SET IsBlocked = TRUE, Expiration = ? WHERE IP = ? AND {$column} = ? AND (TRIES % ?) = 0");
         $query->bind_param("sssi", $expiration, $ip, $uid, $limit);
         $query->execute();
         $query->close();
         return;
     }
 
-    public function blockedIPArray($uid)
+    public function blockedIPArray($uid, $group)
     {
-        $query = $this->conn->prepare("SELECT IP FROM BlockedIP WHERE `UID` = ? AND IsBlocked = TRUE");
+        // Column isn't user determined but escape just incase
+        $column = $this->conn->real_escape_string($this->convertGroupToTable($group));
+        $query = $this->conn->prepare("SELECT IP FROM BlockedIP WHERE {$column} = ? AND IsBlocked = TRUE");
         if (!$query) return [];
         $query->bind_param("s", $uid);
         $query->execute();
@@ -86,10 +95,12 @@ class DBQueries
         return isset($results) ? $results : [];
     }
 
-    public function blockExpired($uid, $ip)
+    public function blockExpired($uid, $group, $ip)
     {
+        // Column isn't user determined but escape just incase
+        $column = $this->conn->real_escape_string($this->convertGroupToTable($group));
         // Check if current date has surpassed expiration date
-        $query = $this->conn->prepare("SELECT Expiration FROM BlockedIP WHERE IP = ? AND `UID` = ?");
+        $query = $this->conn->prepare("SELECT Expiration FROM BlockedIP WHERE IP = ? AND {$column} = ?");
         if (!$query) return true;
         $query->bind_param("ss", $ip, $uid);
         $query->execute();
@@ -101,7 +112,7 @@ class DBQueries
             return false;
         }
         // If current date has surpassed expiration date Remove block and date
-        $query = $this->conn->prepare("UPDATE BlockedIP SET IsBlocked = FALSE, Expiration = NULL WHERE IP = ? AND `UID` = ?");
+        $query = $this->conn->prepare("UPDATE BlockedIP SET IsBlocked = FALSE, Expiration = NULL WHERE IP = ? AND {$column} = ?");
         $query->bind_param("ss", $ip, $uid);
         $query->execute();
         $query->close();
@@ -325,16 +336,16 @@ class DBQueries
             $results[] = $row['UID'];
         }
         $query->close();
-
-        return $results;
+        return isset($results) ? $results : [];
     }
 
     public function insertAuditlog($data)
     {
+        $column = $this->conn->real_escape_string($this->convertGroupToTable($data['group']));
         $date = date('Y-m-d H:i:s');
-        $query = $this->conn->prepare("INSERT INTO Auditlog (`UID`, action_time, request_url, message, ip) VALUES (? ,?, ?, ?, ?)");
+        $query = $this->conn->prepare("INSERT INTO Auditlog ({$column}, action_time, request_url, `message`, ip) VALUES (? ,?, ?, ?, ?)");
         if (!$query) return true;
-        $query->bind_param("sssss", $data[0], $date, $data[1], $data[2], $data[3]);
+        $query->bind_param("sssss", $data['uid'], $date, $data['url'], $data['msg'], $data['ip']);
         $query->execute();
         $query->close();
         return true;

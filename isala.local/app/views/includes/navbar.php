@@ -42,10 +42,14 @@
             <ul class="list-unstyled components sidebar-ul">
                 <div style="margin-bottom: 50px;"></div>
                 <li class="active">
-                    <a class="sidebar-item" href="#"><img src="/public/imgs/home_white.png" width="50" height="50"><br>Home</a>
+                    <a class="sidebar-item" href="/public/home"><img src="/public/imgs/home_white.png" width="50" height="50"><br>Home</a>
                 </li>
                 <li>
-                    <a class="sidebar-item" href="#"><img src="/public/imgs/documents_white.png" width="50" height="50"><br>Documenten</a>
+                    <?php if ($_SESSION['role'] == 'patienten') : ?>
+                        <a class="sidebar-item" href="/public/fileupload"><img src="/public/imgs/documents_white.png" width="50" height="50"><br>Documenten</a>
+                    <?php else : ?>
+                        <a class="sidebar-item" href="/public/patientlist"><img src="/public/imgs/documents_white.png" width="50" height="50"><br>Patiënten</a>
+                    <?php endif ?>
                 </li>
                 <li>
                     <a class="sidebar-item" href="#"><img src="/public/imgs/chart_white.png" width="50" height="50"><br>Voortgang</a>

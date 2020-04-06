@@ -309,9 +309,9 @@ class DBQueries
         if ($only_most_recent) {
             $query = $this->conn->prepare("SELECT * FROM Meting WHERE Patiënt = ? AND Categorie = ? AND ID NOT IN 
                                             (SELECT ID FROM 
-                                                (SELECT * FROM Meting ORDER BY Datum, Tijd DESC) as t2 GROUP BY Onderwerp HAVING COUNT(*) > 1)
+                                                (SELECT * FROM Meting WHERE Patiënt = ? AND Categorie = ? ORDER BY Datum, Tijd DESC) as t2 GROUP BY Onderwerp HAVING COUNT(*) > 1)
                                             ");
-	    $query->bind_param("ssss", $uid, $category, $uid, $category);
+	        $query->bind_param("ssss", $uid, $category, $uid, $category);
         } else {
 	    $query = $this->conn->prepare("SELECT * FROM Meting WHERE Patiënt = ? AND Categorie = ?");
 	    $query->bind_param("ss", $uid, $category);

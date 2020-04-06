@@ -127,8 +127,8 @@ class createUser extends Controller implements Authentication, Authorization
             $this->err_msg = "Adres mag niet langer zijn dan 128 karakters";
             return false;
         }
-        if ((bool) preg_match('/[^A-Za-zÄÖÜËÏäöüëïÿẞß ]/', $adres)) {
-            $this->err_msg = "Adres mag alleen letters bevatten";
+        if ((bool) preg_match('/[^A-Za-z0-9ÄÖÜËÏäöüëïÿẞß,. ]/', $adres)) {
+            $this->err_msg = "Adres bevat niet toegestane tekens";
             return false;
         }
 

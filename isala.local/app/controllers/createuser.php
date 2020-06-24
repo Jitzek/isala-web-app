@@ -40,21 +40,7 @@ class createUser extends Controller implements Authentication, Authorization
         $prev_values = $_POST;
         unset($prev_values['passwd']);
         if (isset($_POST["create_user"])) {
-            // Are fields left empty
-            if ($_POST['uid'] && $_POST['cn'] && $_POST['sn'] && $_POST['passwd'] && $_POST['adres'] && $_POST['geboortedatum'] && $_POST['geslacht'] && $_POST['telefoonnummer']) {
-                if ($this->validateInput($_POST['cn'], $_POST['sn'], $_POST['adres'], $_POST['geboortedatum'], $_POST['geslacht'], $_POST['telefoonnummer'], $_POST['uid'], $_POST['passwd'])) {
-                    if ($this->attemptUserCreation($_POST['uid'], $_POST['cn'], $_POST['sn'], $_POST['passwd'])) {
-                        if ($this->attemptUserDatabaseEntry($_POST['uid'], $_POST['adres'], $_POST['geboortedatum'], $_POST['geslacht'], $_POST['telefoonnummer'], $user->getUid())) {
-                            unset($prev_values);
-                        }
-                    }
-                } else {
-                    logger::log($_SESSION['uid'], 'Input was invalid: ' . $this->err_msg, $this->logModel);
-                }
-            } else {
-                logger::log($_SESSION['uid'], 'Fields left empty while creating user', $this->logModel);
-                $this->err_msg = 'Vul alle velden in om een gebruiker toe te voegen.';
-            }
+            $this->attemptUserCreation($user);
         }
 
         // Parse data to view (beware of order)
@@ -85,6 +71,38 @@ class createUser extends Controller implements Authentication, Authorization
         if ($_SESSION['role'] != 'dokters') {
             return false;
         }
+        return true;
+    }
+
+    private function attemptUserCreation($user)
+    {
+        // Check for empty fields
+        if (!$_POST['uid'] || !$_POST['cn'] || !$_POST['sn'] || !$_POST['passwd'] || !$_POST['adres'] || !$_POST['geboortedatum'] || !$_POST['geslacht'] || !$_POST['telefoonnummer']) {
+            logger::log($_SESSION['uid'], 'Fields left empty while creating user', $this->logModel);
+            $this->err_msg = 'Vul alle velden in om een gebruiker toe te voegen.';
+            return false;
+        }
+
+        // Check for invalid input, function validateInput sets $err_msg
+        if (!$this->validateInput($_POST['cn'], $_POST['sn'], $_POST['adres'], $_POST['geboortedatum'], $_POST['geslacht'], $_POST['telefoonnummer'], $_POST['uid'], $_POST['passwd'])) {
+            logger::log($_SESSION['uid'], 'Input was invalid: ' . $this->err_msg, $this->logModel);
+            return false;
+        }
+
+        // Attempt to add user to LDAP directory, function attemptUserLDAPEntry sets $err_msg
+        if (!$this->attemptUserLDAPEntry($_POST['uid'], $_POST['cn'], $_POST['sn'], $_POST['passwd'])) {
+            logger::log($_SESSION['uid'], 'User creation LDAP entry failed ' . $this->err_msg, $this->logModel);
+            return false;
+        }
+
+        // Attempt to add user to Database, function attemptUserDatabaseEntry sets $err_msg
+        if (!$this->attemptUserDatabaseEntry($_POST['uid'], $_POST['adres'], $_POST['geboortedatum'], $_POST['geslacht'], $_POST['telefoonnummer'], $user->getUid())) {
+            logger::log($_SESSION['uid'], 'User creation Database entry failed ' . $this->err_msg, $this->logModel);
+            return false;
+        }
+        
+        unset($prev_values);
+
         return true;
     }
 
@@ -232,7 +250,7 @@ class createUser extends Controller implements Authentication, Authorization
         return true;
     }
 
-    protected function attemptUserCreation($uid, $firstname, $lastname, $password)
+    protected function attemptUserLDAPEntry($uid, $firstname, $lastname, $password)
     {
         // Establish if Ldap connection is possible
         $ds = $this->model->getLDAP()->getConnection();
@@ -316,5 +334,6 @@ class createUser extends Controller implements Authentication, Authorization
 
         logger::log($_POST['uid'], 'Database - user created successfully', $this->logModel);
         $this->model->getDB()->query('createUser', [$uid, $adres, $geboortedatum, $geslacht, $telefoonnummer, $dokter]);
+        return true;
     }
 }

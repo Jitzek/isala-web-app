@@ -23,6 +23,7 @@
             Submit
         </button>
     </form>
+    <p style="color: #FC240F"><?= htmlentities(isset($data['err_msg']) ? $data['err_msg'] : ''); ?></p>
 </body>
 
 </html>

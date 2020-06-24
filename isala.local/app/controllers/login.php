@@ -21,6 +21,7 @@ class Login extends Controller
         if (isset ($_POST["login"])) {
             if ($_POST['uid'] && $_POST['passwd']) {
                 $uid = $_POST['uid'];
+                // Attempt login
                 if ($this->attemptLogin($_POST['uid'], $_POST['passwd'])) {
                     // Generate authentication token
                     $token = substr(str_shuffle(str_repeat('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 12)), 0, 12);
@@ -35,17 +36,19 @@ class Login extends Controller
                     // Redirect user to two factor authentication
                     header("Location: /public/login/twofactor/" . $uid . '/' . $token);
                     die();
-                } else {
+                }
+                // If login failed 
+                else {
                     if ($this->err_msg == '') {
                         logger::log($uid, 'Attempt to login failed', $this->logModel);
-                        $this->err_msg = 'UserID or Password was incorrect';
+                        $this->err_msg = 'Gegeven gebruikersnaam en wachtwoord combinatie was incorrect';
                     }
                     else {
                         logger::log($uid, $this->err_msg, $this->logModel);
                     }
                 }
             } else {
-                $this->err_msg = 'Please Fill in all Fields';
+                $this->err_msg = 'Niet alle velden zijn ingevuld';
             }
         }
 

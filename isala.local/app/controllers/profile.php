@@ -57,10 +57,6 @@ class Profile extends Controller implements Authentication, Authorization
             $algemeen['Geslacht'] = $this->target->getGeslacht();
             switch ($this->user->getGroup()) {
                 case 'patienten':
-                    $medical_data['Dieet'] = $this->target->getMeasurements('Dieet', TRUE);
-                    $medical_data['Fysiotherapie'] = $this->target->getMeasurements('Fysiotherapie', TRUE);
-                    $medical_data['Psychologie'] = $this->target->getMeasurements('Psychologie', TRUE);
-                    break;
                 case 'dokters':
                     $medical_data['Dieet'] = $this->target->getMeasurements('Dieet', TRUE);
                     $medical_data['Fysiotherapie'] = $this->target->getMeasurements('Fysiotherapie', TRUE);

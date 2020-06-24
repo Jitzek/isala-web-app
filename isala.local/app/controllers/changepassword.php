@@ -24,38 +24,21 @@ class ChangePassword extends Controller implements Authentication
         // Define logging model
         $this->logModel = $this->model('LoggingModel');
 
-        // Parse data to view
-        $this->view('changepassword/index', ['title' => $this->model->getTitle()]);
-
         // If request for password change has been send
         if (isset($_POST['change_password'])) {
-            // If required fields werent filled in
-            if (!$_POST['prev_password'] || !$_POST['new_password'] || !$_POST['new_password2']) {
-                logger::log($_SESSION['uid'], 'Fields left empty when changing password', $this->logModel);
-                echo "<p style=\"color: #FC240F\">Please fill in all fields</p>";
-                return;
-            }
-            // Validate password
-            if ($this->validatePassword($_POST['new_password'], $_POST['new_password2'])) {
-                // Attempt to change password
+            // Validate user input
+            if ($this->validateUserInput()) {
+                // Attempt to change password, redirect user on successfull attempt
                 if ($this->attemptPasswordChange($_SESSION['uid'], $_POST['prev_password'], $_POST['new_password'])) {
                     header("Location: /public/home");
                     exit();
                 }
-                // Display error messages
-                if (strlen($this->err_msg) < 1) {
-                    logger::log($_SESSION['uid'], 'Password change failed', $this->logModel);
-                    echo "<p style=\"color: #FC240F\">Something went wrong</p>";
-                }
-                else {
-                    logger::log($_SESSION['uid'], $this->err_msg, $this->logModel);
-                    echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
-                }
-            } else {
-                logger::log($_SESSION['uid'], $this->err_msg, $this->logModel);
-                echo "<p style=\"color: #FC240F\">" .  htmlentities($this->err_msg) . "</p>";
             }
         }
+
+        // Parse data to view
+        $this->view('changepassword/index', ['title' => $this->model->getTitle(), 'err_msg' => $this->err_msg]);
+        $this->view('includes/footer');
     }
 
     public function authenticate()
@@ -67,8 +50,37 @@ class ChangePassword extends Controller implements Authentication
         return true;
     }
 
+    protected function validateUserInput()
+    {
+        // If required fields werent filled in
+        if (!$_POST['prev_password'] || !$_POST['new_password'] || !$_POST['new_password2']) {
+            logger::log($_SESSION['uid'], 'Fields left empty when changing password', $this->logModel);
+            $this->err_msg = 'Niet alle velden zijn ingevuld';
+            //echo "<p style=\"color: #FC240F\">Please fill in all fields</p>";
+            return false;
+        }
+
+        // Validate given password
+        if (!$this->validatePassword($_POST['new_password'], $_POST['new_password2'])) {
+            logger::log($_SESSION['uid'], $this->err_msg, $this->logModel);
+            return false;
+        }
+
+        return true;
+    }
+
     protected function attemptPasswordChange($uid, $prev_password, $new_password)
     {
+        // Check for connection with LDAP and Database
+        if (!$this->model->getLDAP()->getConnection()) {
+            $this->err_msg = 'Verbinding mislukt';
+            return false;
+        }
+        if (!$this->model->getDB()->getConnection()) {
+            $this->err_msg = 'Verbinding mislukt';
+            return false;
+        }
+
         // Check if User Exists
         if (
             !$this->model->getLDAP()->query('uidExists', [$uid, "inetOrgPerson"])
@@ -86,15 +98,6 @@ class ChangePassword extends Controller implements Authentication
         // Check if passwords are the same 
         if ($prev_password == $new_password) {
             $this->err_msg = 'Het nieuwe wachtwoord kan niet gelijk zijn aan het oude wachtwoord';
-            return false;
-        }
-
-        if (!$this->model->getLDAP()->getConnection()) {
-            $this->err_msg = 'Verbinding mislukt';
-            return false;
-        }
-        if (!$this->model->getDB()->getConnection()) {
-            $this->err_msg = 'Verbinding mislukt';
             return false;
         }
 
